@@ -1,0 +1,25 @@
+[package]
+name = "balance-stargate-query"
+version = "0.1.0"
+edition = "2022"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cw2 = { version = "0.16.0" }
+cosmwasm-std = { vsersion = "1.0.0", features = ["stargate"] }
+schemars = "0.8.1"
+
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.23" }
+cw-storage-plus  = { version = "0.16.0" } 
+cosmos-sdk-proto = { path = "../../packages/cosmos-sdk-proto"}
+prost = "0.11.3"
