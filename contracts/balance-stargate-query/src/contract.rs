@@ -77,7 +77,7 @@ pub fn query_exchange_rate_stargate(deps: Deps, denom: String, address: String) 
         StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
     }).unwrap();
 
-    let value = match deps.querier.raw_query(&raw) {
+    return match deps.querier.raw_query(&raw) {
         SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
             "Querier system error: {}",
             system_err
@@ -89,5 +89,4 @@ pub fn query_exchange_rate_stargate(deps: Deps, denom: String, address: String) 
         SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
     };
 
-    return value;
 }
