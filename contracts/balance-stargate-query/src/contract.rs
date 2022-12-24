@@ -54,12 +54,12 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryBalance { denom, address } => query_exchange_rate_stargate(deps, denom, address),
+        QueryMsg::QueryBalance { denom, address } => query_balance_stargate(deps, denom, address),
     }
 }
 
 
-pub fn query_exchange_rate_stargate(deps: Deps, denom: String, address: String) -> StdResult<Binary> {
+pub fn query_balance_stargate(deps: Deps, denom: String, address: String) -> StdResult<Binary> {
     let query_request = QueryBalanceRequest {
         address,
         denom,
