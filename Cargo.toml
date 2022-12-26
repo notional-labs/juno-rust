@@ -1,5 +1,5 @@
 [workspace]
-members = ["packages/*", "contracts/*"]
+members = ["packages/*", "contracts/*","proto-build"]
 
 [profile.release.package.oracle-querier]
 opt-level = 3
