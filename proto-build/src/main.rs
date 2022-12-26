@@ -41,8 +41,6 @@ const COSMOS_SDK_DIR: &str = "../cosmos-sdk";
 const IBC_DIR: &str = "../ibc-go";
 /// Directory where the submodule is located
 const WASMD_DIR: &str = "../wasmd";
-// Juno directory where the submodule is located
-const JUNO_DIR: &str = "../juno";
 /// A temporary directory for proto building
 const TMP_BUILD_DIR: &str = "/tmp/tmp-protobuf/";
 
@@ -89,6 +87,7 @@ fn main() {
     fs::create_dir_all(&temp_juno_dir).unwrap();
 
 
+    // cannot update.
     // update_submodules();
     output_sdk_version(&temp_sdk_dir);
     output_ibc_version(&temp_ibc_dir);
@@ -254,46 +253,9 @@ fn compile_sdk_protos_and_services(out_dir: &Path) {
         format!("{}/proto/cosmos/tx", sdk_dir.display()),
         format!("{}/proto/cosmos/upgrade", sdk_dir.display()),
         format!("{}/proto/cosmos/vesting", sdk_dir.display()),
-    ];
-
-    // List available proto files
-    let mut protos: Vec<PathBuf> = vec![];
-    collect_protos(&proto_paths, &mut protos);
-
-    // List available paths for dependencies
-    let includes: Vec<PathBuf> = proto_includes_paths.iter().map(PathBuf::from).collect();
-
-    // Compile all of the proto files, along with grpc service clients
-    info!("Compiling proto definitions and clients for GRPC services!");
-    tonic_build::configure()
-        .build_client(true)
-        .build_server(true)
-        .out_dir(out_dir)
-        .extern_path(".tendermint", "::tendermint_proto")
-        .compile(&protos, &includes)
-        .unwrap();
-
-    info!("=> Done!");
-}
-
-fn compile_juno_protos_and_services(out_dir: &Path) {
-    info!(
-        "Compiling juno .proto files to Rust into '{}'...",
-        out_dir.display()
-    );
-
-    let root = env!("CARGO_MANIFEST_DIR");
-    let sdk_dir = Path::new(JUNO_DIR);
-
-    let proto_includes_paths = [
-        format!("{}/../proto", root),
-        format!("{}/proto", sdk_dir.display()),
-        format!("{}/third_party/proto", sdk_dir.display()),
-    ];
-
-    // Paths
-    let proto_paths = [
+        format!("{}/proto/juno/oracle", sdk_dir.display()),
         format!("{}/proto/juno/mint", sdk_dir.display()),
+        format!("{}/proto/juno/oracle", sdk_dir.display()),
     ];
 
     // List available proto files
@@ -315,6 +277,7 @@ fn compile_juno_protos_and_services(out_dir: &Path) {
 
     info!("=> Done!");
 }
+
 
 fn compile_wasmd_proto_and_services(out_dir: &Path) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
