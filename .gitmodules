@@ -2,8 +2,8 @@
 	path = dependencies/cosmos-sdk
 	url = https://github.com/cosmos/cosmos-sdk.git
 [submodule "ibc-go"]
-	path = ibc-go
+	path = dependencies/ibc-go
 	url = https://github.com/cosmos/ibc-go
 [submodule "wasmd"]
-	path = wasmd
+	path = dependencies/wasmd
 	url = https://github.com/CosmWasm/wasmd.git
