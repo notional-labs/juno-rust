@@ -1,16 +1,17 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    Binary, Deps, DepsMut, Env, MessageInfo,
-    QueryRequest, Response, StdError, StdResult, Empty,to_vec, SystemResult, ContractResult
+    to_vec, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
+    StdError, StdResult, SystemResult, to_binary, from_binary,
 };
-
-use serde::{Deserialize, Serialize};
+use std::io::Cursor;
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
-use cosmos_sdk_proto::cosmos::bank::v1beta1::{QueryBalanceRequest};
-use prost::{Message};
-use crate::{error::ContractError, querier::QueryMsg};
+use crate::{error::ContractError, msg::QueryMsg};
+use juno_rust_proto::juno::oracle::v1::{AggregateExchangeRatePrevote, AggregateExchangeRateVote};
+use juno_rust_proto::juno::oracle::v1::{QueryExchangeRates, QueryExchangeRatesResponse};
+use prost::Message;
 
 use cw2::set_contract_version;
 
@@ -21,7 +22,6 @@ pub struct InstantiateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {}
-
 
 // version info for migration info
 const CONTRACT_NAME: &str = "crates.io:active-pool";
@@ -50,43 +50,44 @@ pub fn execute(
     Ok(Response::default())
 }
 
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryBalance { denom, address } => query_balance_stargate(deps, denom, address),
+        QueryMsg::QueryStargateExchangeRates { denom } => {
+            query_stargate_exchange_rates(deps, denom)
+        }
     }
 }
 
-
-pub fn query_balance_stargate(deps: Deps, denom: String, address: String) -> StdResult<Binary> {
-    let query_request = QueryBalanceRequest {
-        address,
-        denom,
-    };
+pub fn query_stargate_exchange_rates(deps: Deps, denom: String) -> StdResult<Binary> {
+    let query_request: QueryExchangeRates = QueryExchangeRates { denom: denom };
 
     let vecu8_query_request = query_request.encode_to_vec();
-    let data =Binary::from(vecu8_query_request);
+    let data = Binary::from(vecu8_query_request);
 
-    let query_request:QueryRequest<Empty> = QueryRequest::Stargate {
-        path: "/cosmos.bank.v1beta1.Query/Balance".to_string(),
-        data : data,
+    let query_request: QueryRequest<Empty> = QueryRequest::Stargate {
+        path: "/juno.oracle.v1.Query/ExchangeRates".to_string(),
+        data: data,
     };
 
-    let raw = to_vec(&query_request).map_err(|serialize_err| {
-        StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
-    }).unwrap();
+    let raw = to_vec(&query_request)
+        .map_err(|serialize_err| {
+            StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
+        })
+        .unwrap();
 
-    return match deps.querier.raw_query(&raw) {
+    let res =  match deps.querier.raw_query(&raw) {
         SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
-            "Querier system error: {}",
+            "Querier contract error: {}",
             system_err
         ))),
         SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
             "Querier contract error: {}",
             contract_err
         ))),
-        SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
+        SystemResult::Ok(ContractResult::Ok(value)) => {
+            from_binary(&value)
+        }
     };
-
+    res
 }

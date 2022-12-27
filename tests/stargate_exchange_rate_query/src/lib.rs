@@ -1,3 +1,3 @@
 pub mod contract;
-pub mod querier;
+pub mod msg;
 pub mod error;

@@ -1,5 +1,5 @@
 [workspace]
-members = ["proto-build", "juno-rust-proto"]
+members = ["proto-build", "juno-rust-proto", "tests/*"]
 
 [profile.release.package.oracle-querier]
 opt-level = 3
