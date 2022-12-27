@@ -21,11 +21,11 @@ tendermint-proto = "=0.23.9"
 # Optional dependencies
 tonic = { version = "0.8", optional = true, default-features = false, features = ["codegen", "prost"] }
 
-[features]
-default = ["grpc-transport"]
-grpc = ["tonic"]
-grpc-transport = ["grpc", "tonic/transport"]
-cosmwasm = []
+# [features]
+# default = ["grpc-transport"]
+# grpc = ["tonic"]
+# grpc-transport = ["grpc", "tonic/transport"]
+# cosmwasm = []
 
 [package.metadata.docs.rs]
 all-features = true
