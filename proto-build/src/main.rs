@@ -34,7 +34,7 @@ const JUNO_REV: &str = "oracle";
 // working directory.
 
 /// The directory generated cosmos-sdk proto files go into in this repo
-const COSMOS_SDK_PROTO_DIR: &str = "../cosmos-sdk-proto/src/prost/";
+const COSMOS_SDK_PROTO_DIR: &str = "../juno-rust-proto/src/prost/";
 /// Directory where the cosmos-sdk submodule is located
 const COSMOS_SDK_DIR: &str = "../cosmos-sdk";
 /// Directory where the cosmos/ibc-go submodule is located
