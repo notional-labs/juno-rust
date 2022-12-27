@@ -8,4 +8,13 @@ Rust libraries for Juno. The following table shows every published crates mainta
 
 ---
 
-This repo also contains [`proto-build`](./proto-build) package which is used for autogenrating rust types from proto.
+## Building Proto files from source
+
+The single proto-build crate in this repo clones and rebuilds proto files for
+all other crates, simply make the required edits in [main.rs](proto-build/main.rs) and run
+
+    cd proto-build && cargo run
+
+## Minimum Supported Rust Version
+
+Rust **1.59**
