@@ -4,13 +4,11 @@ use cosmwasm_std::{
     to_vec, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
     StdError, StdResult, SystemResult, to_binary, from_binary,
 };
-use std::io::Cursor;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{error::ContractError, msg::QueryMsg};
-use juno_rust_proto::juno::oracle::v1::{AggregateExchangeRatePrevote, AggregateExchangeRateVote};
-use juno_rust_proto::juno::oracle::v1::{QueryExchangeRates, QueryExchangeRatesResponse};
+use juno_rust_proto::juno::oracle::v1::{QueryExchangeRates};
 use prost::Message;
 
 use cw2::set_contract_version;
@@ -54,7 +52,7 @@ pub fn execute(
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryStargateExchangeRates { denom } => {
-            query_stargate_exchange_rates(deps, denom)
+            to_binary(&query_stargate_exchange_rates(deps, denom)?)
         }
     }
 }
