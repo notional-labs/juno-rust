@@ -27,8 +27,8 @@ This crate is supported on Rust **1.57** or newer.
 [crate-link]: https://crates.io/crates/juno-rust-proto
 [docs-image]: https://docs.rs/juno-rust-proto/badge.svg
 [docs-link]: https://docs.rs/juno-rust-proto/
-[build-image]: https://github.com/cosmos/cosmos-rust/workflows/juno-rust-proto/badge.svg
-[build-link]: https://github.com/cosmos/cosmos-rust/actions/workflows/juno-rust-proto.yml
+[build-image]: https://github.com/notional-labs/juno-rust/workflows/juno-rust-proto/badge.svg
+[build-link]: https://github.com/notional-labs/juno-rust/actions/workflows/juno-rust-proto.yml
 [license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
 [license-link]: https://github.com/cosmos/cosmos-rust/blob/master/LICENSE
 [rustc-image]: https://img.shields.io/badge/rustc-1.57+-blue.svg
