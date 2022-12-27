@@ -36,11 +36,11 @@ const JUNO_REV: &str = "oracle";
 /// The directory generated cosmos-sdk proto files go into in this repo
 const COSMOS_SDK_PROTO_DIR: &str = "../juno-rust-proto/src/prost/";
 /// Directory where the cosmos-sdk submodule is located
-const COSMOS_SDK_DIR: &str = "../cosmos-sdk";
+const COSMOS_SDK_DIR: &str = "../dependencies/cosmos-sdk";
 /// Directory where the cosmos/ibc-go submodule is located
-const IBC_DIR: &str = "../ibc-go";
+const IBC_DIR: &str = "../dependencies/ibc-go";
 /// Directory where the submodule is located
-const WASMD_DIR: &str = "../wasmd";
+const WASMD_DIR: &str = "../dependencies/wasmd";
 /// A temporary directory for proto building
 const TMP_BUILD_DIR: &str = "/tmp/tmp-protobuf/";
 
