@@ -9,10 +9,10 @@
 Rust crate for interacting with [Protobufs] defined by the [Juno] blockchain.
 
 The goal of this crate is to provide complete proto struct definitions for interacting
-with a Cosmos SDK blockchain.
+with Juno blockchain.
 
 Currently, this crate only provides a subset of the many total structs exported by
-Cosmos SDK proto files.
+Juno proto files.
 
 Pull requests to expand coverage are welcome.
 
