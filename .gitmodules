@@ -1,5 +1,5 @@
 [submodule "cosmos-sdk"]
-	path = dependencies/cosmos-sdk
+	path = cosmos-sdk
 	url = https://github.com/cosmos/cosmos-sdk.git
 [submodule "ibc-go"]
 	path = dependencies/ibc-go
