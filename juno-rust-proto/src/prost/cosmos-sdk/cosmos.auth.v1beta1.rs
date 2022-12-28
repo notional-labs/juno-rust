@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
+
 /// BaseAccount defines a base account type. It contains all the necessary fields
 /// for basic account functionality. Any custom account type should extend this
 /// type for additional functionality (e.g. vesting).
@@ -26,7 +29,7 @@ pub struct ModuleAccount {
 }
 /// Params defines the parameters for the auth module.
 #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Serialize, Deserialize, JsonSchema, Clone, PartialEq, ::prost::Message)]
 pub struct Params {
     #[prost(uint64, tag = "1")]
     pub max_memo_characters: u64,
