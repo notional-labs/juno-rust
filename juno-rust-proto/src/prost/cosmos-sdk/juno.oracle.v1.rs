@@ -23,7 +23,7 @@ pub struct Params {
 }
 /// Denom - the object to hold configurations of each denom
 #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Serialize, Deserialize, JsonSchema, Clone, PartialEq, ::prost::Message)]
 pub struct Denom {
     #[prost(string, tag = "1")]
     pub base_denom: ::prost::alloc::string::String,
