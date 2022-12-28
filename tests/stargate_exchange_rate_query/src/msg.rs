@@ -5,5 +5,6 @@ use schemars::JsonSchema;
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     QueryStargateExchangeRates { denom: String },
+    QueryStargateParams {}
 }
 
