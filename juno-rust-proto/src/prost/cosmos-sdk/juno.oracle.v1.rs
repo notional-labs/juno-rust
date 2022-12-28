@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 /// Params defines the parameters for the oracle module.
 #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Serialize, Deserialize, JsonSchema, Clone, PartialEq, ::prost::Message)]
 pub struct Params {
     #[prost(uint64, tag = "1")]
     pub vote_period: u64,
