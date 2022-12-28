@@ -1,15 +1,22 @@
+use std::io::Cursor;
+
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_vec, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
-    StdError, StdResult, SystemResult, to_binary, from_binary,
+    from_binary, to_binary, to_vec, Binary, ContractResult, Deps, DepsMut, Empty, Env, MessageInfo,
+    QueryRequest, Response, StdError, StdResult, SystemResult,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{error::ContractError, msg::QueryMsg};
-use juno_rust_proto::juno::oracle::v1::{QueryExchangeRates, QueryParams};
-use prost::Message;
+use base64::decode;
+use bech32::encode;
+use juno_rust_proto::juno::oracle::v1::{QueryExchangeRates, QueryParams, QueryParamsResponse};
+use prost::{
+    bytes::{Buf, Bytes},
+    Message,
+};
 
 use cw2::set_contract_version;
 
@@ -53,11 +60,15 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::QueryStargateExchangeRates { denom } => {
             to_binary(&query_stargate_exchange_rates(deps, denom)?)
-        },
-        QueryMsg::QueryStargateParams {  } => to_binary(&query_stargate_params(deps)?)
+        }
+        QueryMsg::QueryStargateParams {} => to_binary(&query_stargate_params(deps)?),
+        QueryMsg::QueryHehe {} => to_binary(&query_hehe(deps)?),
     }
 }
 
+pub fn query_hehe(deps: Deps) -> StdResult<Binary> {
+    Ok(to_binary("hehe")?)
+}
 pub fn query_stargate_exchange_rates(deps: Deps, denom: String) -> StdResult<Binary> {
     let query_request: QueryExchangeRates = QueryExchangeRates { denom: denom };
 
@@ -75,7 +86,7 @@ pub fn query_stargate_exchange_rates(deps: Deps, denom: String) -> StdResult<Bin
         })
         .unwrap();
 
-    let res =  match deps.querier.raw_query(&raw) {
+    let res = match deps.querier.raw_query(&raw) {
         SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
             "Querier contract error: {}",
             system_err
@@ -84,14 +95,12 @@ pub fn query_stargate_exchange_rates(deps: Deps, denom: String) -> StdResult<Bin
             "Querier contract error: {}",
             contract_err
         ))),
-        SystemResult::Ok(ContractResult::Ok(value)) => {
-            from_binary(&value)
-        }
+        SystemResult::Ok(ContractResult::Ok(value)) => from_binary(&value),
     };
     res
 }
 
-pub fn query_stargate_params(deps: Deps) -> StdResult<Binary> {
+pub fn query_stargate_params(deps: Deps) -> StdResult<QueryParamsResponse> {
     let query_request: QueryParams = QueryParams {};
 
     let vecu8_query_request = query_request.encode_to_vec();
@@ -107,20 +116,38 @@ pub fn query_stargate_params(deps: Deps) -> StdResult<Binary> {
             StdError::generic_err(format!("Serializing QueryRequest: {}", serialize_err))
         })
         .unwrap();
-
-    let res =  match deps.querier.raw_query(&raw) {
-        SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
-            "Querier contract error: {}",
-            system_err
-        ))),
-        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
-            "Querier contract error: {}",
-            contract_err
-        ))),
-        SystemResult::Ok(ContractResult::Ok(value)) => {
-            from_binary(&value)
+    match deps.querier.raw_query(&raw) {
+        SystemResult::Err(system_err) => {
+            return Err(StdError::generic_err(format!(
+                "Querier contract error: {}",
+                system_err
+            )))
         }
-    };
-    res
-}
+        SystemResult::Ok(ContractResult::Err(contract_err)) => {
+            return Err(StdError::generic_err(format!(
+                "Querier contract error: {}",
+                contract_err
+            )))
+        }
+        SystemResult::Ok(ContractResult::Ok(value)) => {
+            let mut a = decode(value.to_string()).map_err(|_| StdError::GenericErr {
+                msg: "decode1".to_string(),
+            })?;
+            let mut b: QueryParamsResponse = QueryParamsResponse::default();
+            QueryParamsResponse::encode(&mut b, &mut a).map_err(|_| StdError::GenericErr {
+                msg: "decode2".to_string(),
+            })?;
+            // QueryParamsResponse::decode(a.).map_err(|_| StdError::GenericErr {
+            //     msg: "decode3".to_string(),
+            // })?;
+            // QueryParamsResponse::encode(&b, &mut a).map_err(|_| StdError::GenericErr {
+            //     msg: "decode2".to_string(),
+            // })?;
 
+            // QueryParamsResponse::decode(a).map_err(|_| StdError::GenericErr {
+            //     msg: "decode3".to_string(),
+            // })?;
+            Ok(b)
+        }
+    }
+}
