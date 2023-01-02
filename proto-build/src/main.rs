@@ -256,6 +256,7 @@ fn compile_sdk_protos_and_services(out_dir: &Path) {
         format!("{}/proto/juno/oracle", sdk_dir.display()),
         format!("{}/proto/juno/mint", sdk_dir.display()),
         format!("{}/proto/juno/oracle", sdk_dir.display()),
+        format!("{}/proto/osmosis/tokenfactory/v1beta1", sdk_dir.display()),
     ];
 
     // List available proto files
