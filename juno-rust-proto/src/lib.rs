@@ -233,6 +233,14 @@ pub mod juno {
     }
 }
 
+pub mod osmosis {
+    pub mod tokenfactory {
+        pub mod v1beta1 {
+            include!("prost/cosmos-sdk/osmosis.tokenfactory.v1beta1.rs");
+        }
+    }
+}
+
 /// CosmWasm protobuf definitions.
 #[cfg(feature = "cosmwasm")]
 #[cfg_attr(docsrs, doc(cfg(feature = "cosmwasm")))]

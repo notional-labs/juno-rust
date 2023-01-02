@@ -1,8 +1,6 @@
-use serde::{Deserialize, Serialize};
-use schemars::JsonSchema;
 /// Params defines the parameters for the oracle module.
 #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Serialize, Deserialize, JsonSchema, Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Params {
     #[prost(uint64, tag = "1")]
     pub vote_period: u64,
@@ -23,7 +21,7 @@ pub struct Params {
 }
 /// Denom - the object to hold configurations of each denom
 #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Serialize, Deserialize, JsonSchema, Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Denom {
     #[prost(string, tag = "1")]
     pub base_denom: ::prost::alloc::string::String,
@@ -624,7 +622,7 @@ pub struct QueryAggregateVotesResponse {
 pub struct QueryParams {}
 /// QueryParamsResponse is the response type for the Query/Params RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Serialize, Deserialize, JsonSchema, Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct QueryParamsResponse {
     /// params defines the parameters of the module.
     #[prost(message, optional, tag = "1")]
