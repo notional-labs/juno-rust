@@ -12,7 +12,8 @@ use serde::{Deserialize, Serialize};
 use crate::{error::ContractError, msg::QueryMsg};
 use base64::decode;
 use bech32::encode;
-use juno_rust_proto::juno::oracle::v1::{QueryExchangeRates, QueryParams, QueryParamsResponse};
+use juno_rust_proto::juno::oracle::v1::{QueryExchangeRates, QueryParams};
+use juno_rust_proto::osmosis::tokenfactory::v1beta1::{QueryParamsRequest, QueryParamsResponse};
 use prost::{
     bytes::{Buf, Bytes},
     Message,
@@ -100,14 +101,14 @@ pub fn query_stargate_exchange_rates(deps: Deps, denom: String) -> StdResult<Bin
     res
 }
 
-pub fn query_stargate_params(deps: Deps) -> StdResult<QueryParamsResponse> {
-    let query_request: QueryParams = QueryParams {};
+pub fn query_stargate_params(deps: Deps) -> StdResult<Binary> {
+    let query_request: QueryParamsRequest = QueryParamsRequest{};
 
     let vecu8_query_request = query_request.encode_to_vec();
     let data = Binary::from(vecu8_query_request);
 
     let query_request: QueryRequest<Empty> = QueryRequest::Stargate {
-        path: "/juno.oracle.v1.Query/Params".to_string(),
+        path: "/osmosis.tokenfactory.v1beta1.Query/Params".to_string(),
         data: data,
     };
 
@@ -147,7 +148,7 @@ pub fn query_stargate_params(deps: Deps) -> StdResult<QueryParamsResponse> {
             // QueryParamsResponse::decode(a).map_err(|_| StdError::GenericErr {
             //     msg: "decode3".to_string(),
             // })?;
-            Ok(b)
+            Ok(value)
         }
     }
 }

@@ -7,3 +7,6 @@
 [submodule "wasmd"]
 	path = dependencies/wasmd
 	url = https://github.com/CosmWasm/wasmd.git
+[submodule "osmosis"]
+	path = osmosis
+	url = https://github.com/osmosis-labs/osmosis.git
