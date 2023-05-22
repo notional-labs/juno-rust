@@ -103,6 +103,477 @@ pub struct Params {
     #[prost(string, repeated, tag = "1")]
     pub allowed_clients: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
+/// GenesisState defines the ibc client submodule's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    /// client states with their corresponding identifiers
+    #[prost(message, repeated, tag = "1")]
+    pub clients: ::prost::alloc::vec::Vec<IdentifiedClientState>,
+    /// consensus states from each client
+    #[prost(message, repeated, tag = "2")]
+    pub clients_consensus: ::prost::alloc::vec::Vec<ClientConsensusStates>,
+    /// metadata from each client
+    #[prost(message, repeated, tag = "3")]
+    pub clients_metadata: ::prost::alloc::vec::Vec<IdentifiedGenesisMetadata>,
+    #[prost(message, optional, tag = "4")]
+    pub params: ::core::option::Option<Params>,
+    /// create localhost on initialization
+    #[prost(bool, tag = "5")]
+    pub create_localhost: bool,
+    /// the sequence for the next generated client identifier
+    #[prost(uint64, tag = "6")]
+    pub next_client_sequence: u64,
+}
+/// GenesisMetadata defines the genesis type for metadata that clients may return
+/// with ExportMetadata
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisMetadata {
+    /// store key of metadata without clientID-prefix
+    #[prost(bytes = "vec", tag = "1")]
+    pub key: ::prost::alloc::vec::Vec<u8>,
+    /// metadata value
+    #[prost(bytes = "vec", tag = "2")]
+    pub value: ::prost::alloc::vec::Vec<u8>,
+}
+/// IdentifiedGenesisMetadata has the client metadata with the corresponding
+/// client id.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct IdentifiedGenesisMetadata {
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "2")]
+    pub client_metadata: ::prost::alloc::vec::Vec<GenesisMetadata>,
+}
+/// QueryClientStateRequest is the request type for the Query/ClientState RPC
+/// method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientStateRequest {
+    /// client state unique identifier
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+}
+/// QueryClientStateResponse is the response type for the Query/ClientState RPC
+/// method. Besides the client state, it includes a proof and the height from
+/// which the proof was retrieved.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientStateResponse {
+    /// client state associated with the request identifier
+    #[prost(message, optional, tag = "1")]
+    pub client_state: ::core::option::Option<::prost_types::Any>,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<Height>,
+}
+/// QueryClientStatesRequest is the request type for the Query/ClientStates RPC
+/// method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientStatesRequest {
+    /// pagination request
+    #[prost(message, optional, tag = "1")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
+    >,
+}
+/// QueryClientStatesResponse is the response type for the Query/ClientStates RPC
+/// method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientStatesResponse {
+    /// list of stored ClientStates of the chain.
+    #[prost(message, repeated, tag = "1")]
+    pub client_states: ::prost::alloc::vec::Vec<IdentifiedClientState>,
+    /// pagination response
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
+    >,
+}
+/// QueryConsensusStateRequest is the request type for the Query/ConsensusState
+/// RPC method. Besides the consensus state, it includes a proof and the height
+/// from which the proof was retrieved.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConsensusStateRequest {
+    /// client identifier
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+    /// consensus state revision number
+    #[prost(uint64, tag = "2")]
+    pub revision_number: u64,
+    /// consensus state revision height
+    #[prost(uint64, tag = "3")]
+    pub revision_height: u64,
+    /// latest_height overrrides the height field and queries the latest stored
+    /// ConsensusState
+    #[prost(bool, tag = "4")]
+    pub latest_height: bool,
+}
+/// QueryConsensusStateResponse is the response type for the Query/ConsensusState
+/// RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConsensusStateResponse {
+    /// consensus state associated with the client identifier at the given height
+    #[prost(message, optional, tag = "1")]
+    pub consensus_state: ::core::option::Option<::prost_types::Any>,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<Height>,
+}
+/// QueryConsensusStatesRequest is the request type for the Query/ConsensusStates
+/// RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConsensusStatesRequest {
+    /// client identifier
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+    /// pagination request
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
+    >,
+}
+/// QueryConsensusStatesResponse is the response type for the
+/// Query/ConsensusStates RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConsensusStatesResponse {
+    /// consensus states associated with the identifier
+    #[prost(message, repeated, tag = "1")]
+    pub consensus_states: ::prost::alloc::vec::Vec<ConsensusStateWithHeight>,
+    /// pagination response
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
+    >,
+}
+/// QueryConsensusStateHeightsRequest is the request type for Query/ConsensusStateHeights
+/// RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConsensusStateHeightsRequest {
+    /// client identifier
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+    /// pagination request
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
+    >,
+}
+/// QueryConsensusStateHeightsResponse is the response type for the
+/// Query/ConsensusStateHeights RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConsensusStateHeightsResponse {
+    /// consensus state heights
+    #[prost(message, repeated, tag = "1")]
+    pub consensus_state_heights: ::prost::alloc::vec::Vec<Height>,
+    /// pagination response
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
+    >,
+}
+/// QueryClientStatusRequest is the request type for the Query/ClientStatus RPC
+/// method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientStatusRequest {
+    /// client unique identifier
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+}
+/// QueryClientStatusResponse is the response type for the Query/ClientStatus RPC
+/// method. It returns the current status of the IBC client.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientStatusResponse {
+    #[prost(string, tag = "1")]
+    pub status: ::prost::alloc::string::String,
+}
+/// QueryClientParamsRequest is the request type for the Query/ClientParams RPC
+/// method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientParamsRequest {}
+/// QueryClientParamsResponse is the response type for the Query/ClientParams RPC
+/// method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryClientParamsResponse {
+    /// params defines the parameters of the module.
+    #[prost(message, optional, tag = "1")]
+    pub params: ::core::option::Option<Params>,
+}
+/// QueryUpgradedClientStateRequest is the request type for the
+/// Query/UpgradedClientState RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUpgradedClientStateRequest {}
+/// QueryUpgradedClientStateResponse is the response type for the
+/// Query/UpgradedClientState RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUpgradedClientStateResponse {
+    /// client state associated with the request identifier
+    #[prost(message, optional, tag = "1")]
+    pub upgraded_client_state: ::core::option::Option<::prost_types::Any>,
+}
+/// QueryUpgradedConsensusStateRequest is the request type for the
+/// Query/UpgradedConsensusState RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUpgradedConsensusStateRequest {}
+/// QueryUpgradedConsensusStateResponse is the response type for the
+/// Query/UpgradedConsensusState RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUpgradedConsensusStateResponse {
+    /// Consensus state associated with the request identifier
+    #[prost(message, optional, tag = "1")]
+    pub upgraded_consensus_state: ::core::option::Option<::prost_types::Any>,
+}
+/// Generated client implementations.
+#[cfg(feature = "grpc")]
+#[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
+pub mod query_client {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
+    /// Query provides defines the gRPC querier service
+    #[derive(Debug, Clone)]
+    pub struct QueryClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    #[cfg(feature = "grpc-transport")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "grpc-transport")))]
+    impl QueryClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> QueryClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> QueryClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + Send + Sync,
+        {
+            QueryClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// ClientState queries an IBC light client.
+        pub async fn client_state(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryClientStateRequest>,
+        ) -> Result<tonic::Response<super::QueryClientStateResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientState");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ClientStates queries all the IBC light clients of a chain.
+        pub async fn client_states(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryClientStatesRequest>,
+        ) -> Result<tonic::Response<super::QueryClientStatesResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientStates");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ConsensusState queries a consensus state associated with a client state at
+        /// a given height.
+        pub async fn consensus_state(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryConsensusStateRequest>,
+        ) -> Result<tonic::Response<super::QueryConsensusStateResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ConsensusState");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ConsensusStates queries all the consensus state associated with a given
+        /// client.
+        pub async fn consensus_states(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryConsensusStatesRequest>,
+        ) -> Result<tonic::Response<super::QueryConsensusStatesResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ConsensusStates");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ConsensusStateHeights queries the height of every consensus states associated with a given client.
+        pub async fn consensus_state_heights(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryConsensusStateHeightsRequest>,
+        ) -> Result<tonic::Response<super::QueryConsensusStateHeightsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.client.v1.Query/ConsensusStateHeights",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// Status queries the status of an IBC client.
+        pub async fn client_status(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryClientStatusRequest>,
+        ) -> Result<tonic::Response<super::QueryClientStatusResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientStatus");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ClientParams queries all parameters of the ibc client.
+        pub async fn client_params(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryClientParamsRequest>,
+        ) -> Result<tonic::Response<super::QueryClientParamsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientParams");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// UpgradedClientState queries an Upgraded IBC light client.
+        pub async fn upgraded_client_state(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryUpgradedClientStateRequest>,
+        ) -> Result<tonic::Response<super::QueryUpgradedClientStateResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.client.v1.Query/UpgradedClientState",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// UpgradedConsensusState queries an Upgraded IBC consensus state.
+        pub async fn upgraded_consensus_state(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryUpgradedConsensusStateRequest>,
+        ) -> Result<tonic::Response<super::QueryUpgradedConsensusStateResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.client.v1.Query/UpgradedConsensusState",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+    }
+}
 /// MsgCreateClient defines a message to create an IBC client
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -323,429 +794,4 @@ pub mod msg_client {
             self.inner.unary(request.into_request(), path, codec).await
         }
     }
-}
-/// QueryClientStateRequest is the request type for the Query/ClientState RPC
-/// method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientStateRequest {
-    /// client state unique identifier
-    #[prost(string, tag = "1")]
-    pub client_id: ::prost::alloc::string::String,
-}
-/// QueryClientStateResponse is the response type for the Query/ClientState RPC
-/// method. Besides the client state, it includes a proof and the height from
-/// which the proof was retrieved.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientStateResponse {
-    /// client state associated with the request identifier
-    #[prost(message, optional, tag = "1")]
-    pub client_state: ::core::option::Option<::prost_types::Any>,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "2")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "3")]
-    pub proof_height: ::core::option::Option<Height>,
-}
-/// QueryClientStatesRequest is the request type for the Query/ClientStates RPC
-/// method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientStatesRequest {
-    /// pagination request
-    #[prost(message, optional, tag = "1")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
-    >,
-}
-/// QueryClientStatesResponse is the response type for the Query/ClientStates RPC
-/// method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientStatesResponse {
-    /// list of stored ClientStates of the chain.
-    #[prost(message, repeated, tag = "1")]
-    pub client_states: ::prost::alloc::vec::Vec<IdentifiedClientState>,
-    /// pagination response
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
-    >,
-}
-/// QueryConsensusStateRequest is the request type for the Query/ConsensusState
-/// RPC method. Besides the consensus state, it includes a proof and the height
-/// from which the proof was retrieved.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryConsensusStateRequest {
-    /// client identifier
-    #[prost(string, tag = "1")]
-    pub client_id: ::prost::alloc::string::String,
-    /// consensus state revision number
-    #[prost(uint64, tag = "2")]
-    pub revision_number: u64,
-    /// consensus state revision height
-    #[prost(uint64, tag = "3")]
-    pub revision_height: u64,
-    /// latest_height overrrides the height field and queries the latest stored
-    /// ConsensusState
-    #[prost(bool, tag = "4")]
-    pub latest_height: bool,
-}
-/// QueryConsensusStateResponse is the response type for the Query/ConsensusState
-/// RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryConsensusStateResponse {
-    /// consensus state associated with the client identifier at the given height
-    #[prost(message, optional, tag = "1")]
-    pub consensus_state: ::core::option::Option<::prost_types::Any>,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "2")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "3")]
-    pub proof_height: ::core::option::Option<Height>,
-}
-/// QueryConsensusStatesRequest is the request type for the Query/ConsensusStates
-/// RPC method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryConsensusStatesRequest {
-    /// client identifier
-    #[prost(string, tag = "1")]
-    pub client_id: ::prost::alloc::string::String,
-    /// pagination request
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
-    >,
-}
-/// QueryConsensusStatesResponse is the response type for the
-/// Query/ConsensusStates RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryConsensusStatesResponse {
-    /// consensus states associated with the identifier
-    #[prost(message, repeated, tag = "1")]
-    pub consensus_states: ::prost::alloc::vec::Vec<ConsensusStateWithHeight>,
-    /// pagination response
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
-    >,
-}
-/// QueryClientStatusRequest is the request type for the Query/ClientStatus RPC
-/// method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientStatusRequest {
-    /// client unique identifier
-    #[prost(string, tag = "1")]
-    pub client_id: ::prost::alloc::string::String,
-}
-/// QueryClientStatusResponse is the response type for the Query/ClientStatus RPC
-/// method. It returns the current status of the IBC client.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientStatusResponse {
-    #[prost(string, tag = "1")]
-    pub status: ::prost::alloc::string::String,
-}
-/// QueryClientParamsRequest is the request type for the Query/ClientParams RPC
-/// method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientParamsRequest {}
-/// QueryClientParamsResponse is the response type for the Query/ClientParams RPC
-/// method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryClientParamsResponse {
-    /// params defines the parameters of the module.
-    #[prost(message, optional, tag = "1")]
-    pub params: ::core::option::Option<Params>,
-}
-/// QueryUpgradedClientStateRequest is the request type for the
-/// Query/UpgradedClientState RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUpgradedClientStateRequest {}
-/// QueryUpgradedClientStateResponse is the response type for the
-/// Query/UpgradedClientState RPC method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUpgradedClientStateResponse {
-    /// client state associated with the request identifier
-    #[prost(message, optional, tag = "1")]
-    pub upgraded_client_state: ::core::option::Option<::prost_types::Any>,
-}
-/// QueryUpgradedConsensusStateRequest is the request type for the
-/// Query/UpgradedConsensusState RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUpgradedConsensusStateRequest {}
-/// QueryUpgradedConsensusStateResponse is the response type for the
-/// Query/UpgradedConsensusState RPC method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUpgradedConsensusStateResponse {
-    /// Consensus state associated with the request identifier
-    #[prost(message, optional, tag = "1")]
-    pub upgraded_consensus_state: ::core::option::Option<::prost_types::Any>,
-}
-/// Generated client implementations.
-#[cfg(feature = "grpc")]
-#[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
-pub mod query_client {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
-    use tonic::codegen::*;
-    /// Query provides defines the gRPC querier service
-    #[derive(Debug, Clone)]
-    pub struct QueryClient<T> {
-        inner: tonic::client::Grpc<T>,
-    }
-    #[cfg(feature = "grpc-transport")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "grpc-transport")))]
-    impl QueryClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
-    impl<T> QueryClient<T>
-    where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
-        T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
-    {
-        pub fn new(inner: T) -> Self {
-            let inner = tonic::client::Grpc::new(inner);
-            Self { inner }
-        }
-        pub fn with_origin(inner: T, origin: Uri) -> Self {
-            let inner = tonic::client::Grpc::with_origin(inner, origin);
-            Self { inner }
-        }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> QueryClient<InterceptedService<T, F>>
-        where
-            F: tonic::service::Interceptor,
-            T::ResponseBody: Default,
-            T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-                Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
-                >,
-            >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
-        {
-            QueryClient::new(InterceptedService::new(inner, interceptor))
-        }
-        /// Compress requests with the given encoding.
-        ///
-        /// This requires the server to support it otherwise it might respond with an
-        /// error.
-        #[must_use]
-        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.send_compressed(encoding);
-            self
-        }
-        /// Enable decompressing responses.
-        #[must_use]
-        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.accept_compressed(encoding);
-            self
-        }
-        /// ClientState queries an IBC light client.
-        pub async fn client_state(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryClientStateRequest>,
-        ) -> Result<tonic::Response<super::QueryClientStateResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientState");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// ClientStates queries all the IBC light clients of a chain.
-        pub async fn client_states(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryClientStatesRequest>,
-        ) -> Result<tonic::Response<super::QueryClientStatesResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientStates");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// ConsensusState queries a consensus state associated with a client state at
-        /// a given height.
-        pub async fn consensus_state(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryConsensusStateRequest>,
-        ) -> Result<tonic::Response<super::QueryConsensusStateResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ConsensusState");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// ConsensusStates queries all the consensus state associated with a given
-        /// client.
-        pub async fn consensus_states(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryConsensusStatesRequest>,
-        ) -> Result<tonic::Response<super::QueryConsensusStatesResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ConsensusStates");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// Status queries the status of an IBC client.
-        pub async fn client_status(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryClientStatusRequest>,
-        ) -> Result<tonic::Response<super::QueryClientStatusResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientStatus");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// ClientParams queries all parameters of the ibc client.
-        pub async fn client_params(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryClientParamsRequest>,
-        ) -> Result<tonic::Response<super::QueryClientParamsResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientParams");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// UpgradedClientState queries an Upgraded IBC light client.
-        pub async fn upgraded_client_state(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryUpgradedClientStateRequest>,
-        ) -> Result<tonic::Response<super::QueryUpgradedClientStateResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.client.v1.Query/UpgradedClientState",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// UpgradedConsensusState queries an Upgraded IBC consensus state.
-        pub async fn upgraded_consensus_state(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryUpgradedConsensusStateRequest>,
-        ) -> Result<tonic::Response<super::QueryUpgradedConsensusStateResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.client.v1.Query/UpgradedConsensusState",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-    }
-}
-/// GenesisState defines the ibc client submodule's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    /// client states with their corresponding identifiers
-    #[prost(message, repeated, tag = "1")]
-    pub clients: ::prost::alloc::vec::Vec<IdentifiedClientState>,
-    /// consensus states from each client
-    #[prost(message, repeated, tag = "2")]
-    pub clients_consensus: ::prost::alloc::vec::Vec<ClientConsensusStates>,
-    /// metadata from each client
-    #[prost(message, repeated, tag = "3")]
-    pub clients_metadata: ::prost::alloc::vec::Vec<IdentifiedGenesisMetadata>,
-    #[prost(message, optional, tag = "4")]
-    pub params: ::core::option::Option<Params>,
-    /// create localhost on initialization
-    #[prost(bool, tag = "5")]
-    pub create_localhost: bool,
-    /// the sequence for the next generated client identifier
-    #[prost(uint64, tag = "6")]
-    pub next_client_sequence: u64,
-}
-/// GenesisMetadata defines the genesis type for metadata that clients may return
-/// with ExportMetadata
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisMetadata {
-    /// store key of metadata without clientID-prefix
-    #[prost(bytes = "vec", tag = "1")]
-    pub key: ::prost::alloc::vec::Vec<u8>,
-    /// metadata value
-    #[prost(bytes = "vec", tag = "2")]
-    pub value: ::prost::alloc::vec::Vec<u8>,
-}
-/// IdentifiedGenesisMetadata has the client metadata with the corresponding
-/// client id.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct IdentifiedGenesisMetadata {
-    #[prost(string, tag = "1")]
-    pub client_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "2")]
-    pub client_metadata: ::prost::alloc::vec::Vec<GenesisMetadata>,
 }

@@ -2,18 +2,29 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Minter {
-    /// current annual inflation rate
+    /// current epoch provisions
     #[prost(string, tag = "1")]
-    pub inflation: ::prost::alloc::string::String,
-    #[prost(uint64, tag = "2")]
-    pub phase: u64,
-    #[prost(uint64, tag = "3")]
-    pub start_phase_block: u64,
-    /// current annual expected provisions
+    pub epoch_provisions: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DistributionProportions {
+    /// staking defines the proportion of the minted minted_denom that is to be
+    /// allocated as staking rewards.
+    #[prost(string, tag = "1")]
+    pub staking: ::prost::alloc::string::String,
+    /// pool_incentives defines the proportion of the minted minted_denom that is
+    /// to be allocated as pool incentives.
+    #[prost(string, tag = "2")]
+    pub pool_incentives: ::prost::alloc::string::String,
+    /// participation_rewards defines the proportion of the minted minted_denom
+    /// that is to be allocated to participation rewards address.
+    #[prost(string, tag = "3")]
+    pub participation_rewards: ::prost::alloc::string::String,
+    /// community_pool defines the proportion of the minted minted_denom that is
+    /// to be allocated to the community pool.
     #[prost(string, tag = "4")]
-    pub annual_provisions: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
-    pub target_supply: ::prost::alloc::string::String,
+    pub community_pool: ::prost::alloc::string::String,
 }
 /// Params holds parameters for the mint module.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -22,9 +33,38 @@ pub struct Params {
     /// type of coin to mint
     #[prost(string, tag = "1")]
     pub mint_denom: ::prost::alloc::string::String,
-    /// expected blocks per year
-    #[prost(uint64, tag = "2")]
-    pub blocks_per_year: u64,
+    /// epoch provisions from the first epoch
+    #[prost(string, tag = "2")]
+    pub genesis_epoch_provisions: ::prost::alloc::string::String,
+    /// mint epoch identifier
+    #[prost(string, tag = "3")]
+    pub epoch_identifier: ::prost::alloc::string::String,
+    /// number of epochs take to reduce rewards
+    #[prost(int64, tag = "4")]
+    pub reduction_period_in_epochs: i64,
+    /// reduction multiplier to execute on each period
+    #[prost(string, tag = "5")]
+    pub reduction_factor: ::prost::alloc::string::String,
+    /// distribution_proportions defines the proportion of the minted denom
+    #[prost(message, optional, tag = "6")]
+    pub distribution_proportions: ::core::option::Option<DistributionProportions>,
+    /// start epoch to distribute minting rewards
+    #[prost(int64, tag = "7")]
+    pub minting_rewards_distribution_start_epoch: i64,
+}
+/// GenesisState defines the mint module's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    /// minter is a space for holding current rewards information.
+    #[prost(message, optional, tag = "1")]
+    pub minter: ::core::option::Option<Minter>,
+    /// params defines all the paramaters of the module.
+    #[prost(message, optional, tag = "2")]
+    pub params: ::core::option::Option<Params>,
+    /// current reduction period start epoch
+    #[prost(int64, tag = "3")]
+    pub reduction_started_epoch: i64,
 }
 /// QueryParamsRequest is the request type for the Query/Params RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -38,32 +78,19 @@ pub struct QueryParamsResponse {
     #[prost(message, optional, tag = "1")]
     pub params: ::core::option::Option<Params>,
 }
-/// QueryInflationRequest is the request type for the Query/Inflation RPC method.
+/// QueryEpochProvisionsRequest is the request type for the
+/// Query/EpochProvisions RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryInflationRequest {}
-/// QueryInflationResponse is the response type for the Query/Inflation RPC
-/// method.
+pub struct QueryEpochProvisionsRequest {}
+/// QueryEpochProvisionsResponse is the response type for the
+/// Query/EpochProvisions RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryInflationResponse {
-    /// inflation is the current minting inflation value.
+pub struct QueryEpochProvisionsResponse {
+    /// epoch_provisions is the current minting per epoch provisions value.
     #[prost(bytes = "vec", tag = "1")]
-    pub inflation: ::prost::alloc::vec::Vec<u8>,
-}
-/// QueryAnnualProvisionsRequest is the request type for the
-/// Query/AnnualProvisions RPC method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryAnnualProvisionsRequest {}
-/// QueryAnnualProvisionsResponse is the response type for the
-/// Query/AnnualProvisions RPC method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryAnnualProvisionsResponse {
-    /// annual_provisions is the current minting annual provisions value.
-    #[prost(bytes = "vec", tag = "1")]
-    pub annual_provisions: ::prost::alloc::vec::Vec<u8>,
+    pub epoch_provisions: ::prost::alloc::vec::Vec<u8>,
 }
 /// Generated client implementations.
 #[cfg(feature = "grpc")]
@@ -150,14 +177,15 @@ pub mod query_client {
                 )
             })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/juno.mint.Query/Params");
+            let path =
+                http::uri::PathAndQuery::from_static("/quicksilver.mint.v1beta1.Query/Params");
             self.inner.unary(request.into_request(), path, codec).await
         }
-        /// Inflation returns the current minting inflation value.
-        pub async fn inflation(
+        /// EpochProvisions current minting epoch provisions value.
+        pub async fn epoch_provisions(
             &mut self,
-            request: impl tonic::IntoRequest<super::QueryInflationRequest>,
-        ) -> Result<tonic::Response<super::QueryInflationResponse>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::QueryEpochProvisionsRequest>,
+        ) -> Result<tonic::Response<super::QueryEpochProvisionsResponse>, tonic::Status> {
             self.inner.ready().await.map_err(|e| {
                 tonic::Status::new(
                     tonic::Code::Unknown,
@@ -165,22 +193,9 @@ pub mod query_client {
                 )
             })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/juno.mint.Query/Inflation");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// AnnualProvisions current minting annual provisions value.
-        pub async fn annual_provisions(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryAnnualProvisionsRequest>,
-        ) -> Result<tonic::Response<super::QueryAnnualProvisionsResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/juno.mint.Query/AnnualProvisions");
+            let path = http::uri::PathAndQuery::from_static(
+                "/quicksilver.mint.v1beta1.Query/EpochProvisions",
+            );
             self.inner.unary(request.into_request(), path, codec).await
         }
     }
@@ -199,16 +214,11 @@ pub mod query_server {
             &self,
             request: tonic::Request<super::QueryParamsRequest>,
         ) -> Result<tonic::Response<super::QueryParamsResponse>, tonic::Status>;
-        /// Inflation returns the current minting inflation value.
-        async fn inflation(
+        /// EpochProvisions current minting epoch provisions value.
+        async fn epoch_provisions(
             &self,
-            request: tonic::Request<super::QueryInflationRequest>,
-        ) -> Result<tonic::Response<super::QueryInflationResponse>, tonic::Status>;
-        /// AnnualProvisions current minting annual provisions value.
-        async fn annual_provisions(
-            &self,
-            request: tonic::Request<super::QueryAnnualProvisionsRequest>,
-        ) -> Result<tonic::Response<super::QueryAnnualProvisionsResponse>, tonic::Status>;
+            request: tonic::Request<super::QueryEpochProvisionsRequest>,
+        ) -> Result<tonic::Response<super::QueryEpochProvisionsResponse>, tonic::Status>;
     }
     /// Query provides defines the gRPC querier service.
     #[derive(Debug)]
@@ -264,7 +274,7 @@ pub mod query_server {
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             let inner = self.inner.clone();
             match req.uri().path() {
-                "/juno.mint.Query/Params" => {
+                "/quicksilver.mint.v1beta1.Query/Params" => {
                     #[allow(non_camel_case_types)]
                     struct ParamsSvc<T: Query>(pub Arc<T>);
                     impl<T: Query> tonic::server::UnaryService<super::QueryParamsRequest> for ParamsSvc<T> {
@@ -295,51 +305,20 @@ pub mod query_server {
                     };
                     Box::pin(fut)
                 }
-                "/juno.mint.Query/Inflation" => {
+                "/quicksilver.mint.v1beta1.Query/EpochProvisions" => {
                     #[allow(non_camel_case_types)]
-                    struct InflationSvc<T: Query>(pub Arc<T>);
-                    impl<T: Query> tonic::server::UnaryService<super::QueryInflationRequest> for InflationSvc<T> {
-                        type Response = super::QueryInflationResponse;
-                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::QueryInflationRequest>,
-                        ) -> Self::Future {
-                            let inner = self.0.clone();
-                            let fut = async move { (*inner).inflation(request).await };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = InflationSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
-                            accept_compression_encodings,
-                            send_compression_encodings,
-                        );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/juno.mint.Query/AnnualProvisions" => {
-                    #[allow(non_camel_case_types)]
-                    struct AnnualProvisionsSvc<T: Query>(pub Arc<T>);
-                    impl<T: Query> tonic::server::UnaryService<super::QueryAnnualProvisionsRequest>
-                        for AnnualProvisionsSvc<T>
+                    struct EpochProvisionsSvc<T: Query>(pub Arc<T>);
+                    impl<T: Query> tonic::server::UnaryService<super::QueryEpochProvisionsRequest>
+                        for EpochProvisionsSvc<T>
                     {
-                        type Response = super::QueryAnnualProvisionsResponse;
+                        type Response = super::QueryEpochProvisionsResponse;
                         type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::QueryAnnualProvisionsRequest>,
+                            request: tonic::Request<super::QueryEpochProvisionsRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
-                            let fut = async move { (*inner).annual_provisions(request).await };
+                            let fut = async move { (*inner).epoch_provisions(request).await };
                             Box::pin(fut)
                         }
                     }
@@ -348,7 +327,7 @@ pub mod query_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = AnnualProvisionsSvc(inner);
+                        let method = EpochProvisionsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
                             accept_compression_encodings,
@@ -391,17 +370,6 @@ pub mod query_server {
         }
     }
     impl<T: Query> tonic::server::NamedService for QueryServer<T> {
-        const NAME: &'static str = "juno.mint.Query";
+        const NAME: &'static str = "quicksilver.mint.v1beta1.Query";
     }
-}
-/// GenesisState defines the mint module's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    /// minter is a space for holding current inflation information.
-    #[prost(message, optional, tag = "1")]
-    pub minter: ::core::option::Option<Minter>,
-    /// params defines all the paramaters of the module.
-    #[prost(message, optional, tag = "2")]
-    pub params: ::core::option::Option<Params>,
 }
