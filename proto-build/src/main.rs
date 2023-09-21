@@ -114,7 +114,7 @@ fn main() {
     // copy_generated_files(&temp_juno_dir, &proto_dir.join("quicksilver"));
     // copy_generated_files(&temp_osmosis_dir, &proto_dir.join("osmosis"));
 
-    apply_patches(&proto_dir);
+    // apply_patches(&proto_dir);
 
     info!("Running rustfmt on prost/tonic-generated code");
     run_rustfmt(&proto_dir);
