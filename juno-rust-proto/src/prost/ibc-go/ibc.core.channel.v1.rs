@@ -111,6 +111,22 @@ pub struct PacketState {
     #[prost(bytes = "vec", tag = "4")]
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
+/// PacketId is an identifer for a unique Packet
+/// Source chains refer to packets by source port/channel
+/// Destination chains refer to packets by destination port/channel
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PacketId {
+    /// channel port identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// packet sequence
+    #[prost(uint64, tag = "3")]
+    pub sequence: u64,
+}
 /// Acknowledgement is the recommended acknowledgement format to be used by
 /// app-specific protocols.
 /// NOTE: The field numbers 21 and 22 were explicitly chosen to avoid accidental
@@ -136,6 +152,19 @@ pub mod acknowledgement {
         #[prost(string, tag = "22")]
         Error(::prost::alloc::string::String),
     }
+}
+/// Timeout defines an execution deadline structure for 04-channel handlers.
+/// This includes packet lifecycle handlers as well as the upgrade handshake handlers.
+/// A valid Timeout contains either one or both of a timestamp and block height (sequence).
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Timeout {
+    /// block height after which the packet or upgrade times out
+    #[prost(message, optional, tag = "1")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+    /// block timestamp (in nanoseconds) after which the packet or upgrade times out
+    #[prost(uint64, tag = "2")]
+    pub timestamp: u64,
 }
 /// State defines if a channel is in one of the following states:
 /// CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
@@ -233,6 +262,8 @@ pub struct MsgChannelOpenInit {
 pub struct MsgChannelOpenInitResponse {
     #[prost(string, tag = "1")]
     pub channel_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub version: ::prost::alloc::string::String,
 }
 /// MsgChannelOpenInit defines a msg sent by a Relayer to try to open a channel
 /// on Chain B. The version field within the Channel field has been deprecated. Its
@@ -242,8 +273,8 @@ pub struct MsgChannelOpenInitResponse {
 pub struct MsgChannelOpenTry {
     #[prost(string, tag = "1")]
     pub port_id: ::prost::alloc::string::String,
-    /// in the case of crossing hello's, when both chains call OpenInit, we need
-    /// the channel identifier of the previous channel in state INIT
+    /// Deprecated: this field is unused. Crossing hello's are no longer supported in core IBC.
+    #[deprecated]
     #[prost(string, tag = "2")]
     pub previous_channel_id: ::prost::alloc::string::String,
     /// NOTE: the version field within the channel has been deprecated. Its value will be ignored by core IBC.
@@ -261,7 +292,12 @@ pub struct MsgChannelOpenTry {
 /// MsgChannelOpenTryResponse defines the Msg/ChannelOpenTry response type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgChannelOpenTryResponse {}
+pub struct MsgChannelOpenTryResponse {
+    #[prost(string, tag = "1")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+}
 /// MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 /// the change of channel state to TRYOPEN on Chain B.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -437,11 +473,11 @@ pub struct MsgAcknowledgementResponse {
 #[repr(i32)]
 pub enum ResponseResultType {
     /// Default zero value enumeration
-    ResponseResultUnspecified = 0,
+    Unspecified = 0,
     /// The message did not call the IBC application callbacks (because, for example, the packet had already been relayed)
-    ResponseResultNoop = 1,
+    Noop = 1,
     /// The message was executed successfully
-    ResponseResultSuccess = 2,
+    Success = 2,
 }
 impl ResponseResultType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -450,17 +486,17 @@ impl ResponseResultType {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            ResponseResultType::ResponseResultUnspecified => "RESPONSE_RESULT_UNSPECIFIED",
-            ResponseResultType::ResponseResultNoop => "RESPONSE_RESULT_NOOP",
-            ResponseResultType::ResponseResultSuccess => "RESPONSE_RESULT_SUCCESS",
+            ResponseResultType::Unspecified => "RESPONSE_RESULT_TYPE_UNSPECIFIED",
+            ResponseResultType::Noop => "RESPONSE_RESULT_TYPE_NOOP",
+            ResponseResultType::Success => "RESPONSE_RESULT_TYPE_SUCCESS",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
-            "RESPONSE_RESULT_UNSPECIFIED" => Some(Self::ResponseResultUnspecified),
-            "RESPONSE_RESULT_NOOP" => Some(Self::ResponseResultNoop),
-            "RESPONSE_RESULT_SUCCESS" => Some(Self::ResponseResultSuccess),
+            "RESPONSE_RESULT_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "RESPONSE_RESULT_TYPE_NOOP" => Some(Self::Noop),
+            "RESPONSE_RESULT_TYPE_SUCCESS" => Some(Self::Success),
             _ => None,
         }
     }
@@ -1088,6 +1124,33 @@ pub struct QueryNextSequenceReceiveResponse {
     #[prost(message, optional, tag = "3")]
     pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
 }
+/// QueryNextSequenceSendRequest is the request type for the
+/// Query/QueryNextSequenceSend RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryNextSequenceSendRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+}
+/// QueryNextSequenceSendResponse is the request type for the
+/// Query/QueryNextSequenceSend RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryNextSequenceSendResponse {
+    /// next sequence send number
+    #[prost(uint64, tag = "1")]
+    pub next_sequence_send: u64,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
 /// Generated client implementations.
 #[cfg(feature = "grpc")]
 #[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
@@ -1387,6 +1450,22 @@ pub mod query_client {
             let path = http::uri::PathAndQuery::from_static(
                 "/ibc.core.channel.v1.Query/NextSequenceReceive",
             );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// NextSequenceSend returns the next send sequence for a given channel.
+        pub async fn next_sequence_send(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryNextSequenceSendRequest>,
+        ) -> Result<tonic::Response<super::QueryNextSequenceSendResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/NextSequenceSend");
             self.inner.unary(request.into_request(), path, codec).await
         }
     }

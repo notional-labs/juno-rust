@@ -151,6 +151,11 @@ pub struct ProofSpec {
     /// min_depth (if > 0) is the minimum number of InnerOps allowed (mainly for fixed-depth tries)
     #[prost(int32, tag = "4")]
     pub min_depth: i32,
+    /// prehash_key_before_comparison is a flag that indicates whether to use the
+    /// prehash_key specified by LeafOp to compare lexical ordering of keys for
+    /// non-existence proofs.
+    #[prost(bool, tag = "5")]
+    pub prehash_key_before_comparison: bool,
 }
 ///
 /// InnerSpec contains all store-specific structure info to determine if two proofs from a
@@ -269,6 +274,7 @@ pub enum HashOp {
     Ripemd160 = 4,
     /// ripemd160(sha256(x))
     Bitcoin = 5,
+    Sha512256 = 6,
 }
 impl HashOp {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -283,6 +289,7 @@ impl HashOp {
             HashOp::Keccak => "KECCAK",
             HashOp::Ripemd160 => "RIPEMD160",
             HashOp::Bitcoin => "BITCOIN",
+            HashOp::Sha512256 => "SHA512_256",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -294,6 +301,7 @@ impl HashOp {
             "KECCAK" => Some(Self::Keccak),
             "RIPEMD160" => Some(Self::Ripemd160),
             "BITCOIN" => Some(Self::Bitcoin),
+            "SHA512_256" => Some(Self::Sha512256),
             _ => None,
         }
     }

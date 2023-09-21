@@ -173,8 +173,8 @@ pub struct MsgConnectionOpenInitResponse {}
 pub struct MsgConnectionOpenTry {
     #[prost(string, tag = "1")]
     pub client_id: ::prost::alloc::string::String,
-    /// in the case of crossing hello's, when both chains call OpenInit, we need
-    /// the connection identifier of the previous connection in state INIT
+    /// Deprecated: this field is unused. Crossing hellos are no longer supported in core IBC.
+    #[deprecated]
     #[prost(string, tag = "2")]
     pub previous_connection_id: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
@@ -201,6 +201,9 @@ pub struct MsgConnectionOpenTry {
     pub consensus_height: ::core::option::Option<super::super::client::v1::Height>,
     #[prost(string, tag = "12")]
     pub signer: ::prost::alloc::string::String,
+    /// optional proof data for host state machines that are unable to introspect their own consensus state
+    #[prost(bytes = "vec", tag = "13")]
+    pub host_consensus_state_proof: ::prost::alloc::vec::Vec<u8>,
 }
 /// MsgConnectionOpenTryResponse defines the Msg/ConnectionOpenTry response type.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -235,6 +238,9 @@ pub struct MsgConnectionOpenAck {
     pub consensus_height: ::core::option::Option<super::super::client::v1::Height>,
     #[prost(string, tag = "10")]
     pub signer: ::prost::alloc::string::String,
+    /// optional proof data for host state machines that are unable to introspect their own consensus state
+    #[prost(bytes = "vec", tag = "11")]
+    pub host_consensus_state_proof: ::prost::alloc::vec::Vec<u8>,
 }
 /// MsgConnectionOpenAckResponse defines the Msg/ConnectionOpenAck response type.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -260,6 +266,23 @@ pub struct MsgConnectionOpenConfirm {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MsgConnectionOpenConfirmResponse {}
+/// MsgUpdateParams defines the sdk.Msg type to update the connection parameters.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateParams {
+    /// signer address
+    #[prost(string, tag = "1")]
+    pub signer: ::prost::alloc::string::String,
+    /// params defines the connection parameters to update.
+    ///
+    /// NOTE: All parameters must be supplied.
+    #[prost(message, optional, tag = "2")]
+    pub params: ::core::option::Option<Params>,
+}
+/// MsgUpdateParamsResponse defines the MsgUpdateParams response type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateParamsResponse {}
 /// Generated client implementations.
 #[cfg(feature = "grpc")]
 #[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
@@ -400,6 +423,24 @@ pub mod msg_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        /// UpdateConnectionParams defines a rpc handler method for
+        /// MsgUpdateParams.
+        pub async fn update_connection_params(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgUpdateParams>,
+        ) -> Result<tonic::Response<super::MsgUpdateParamsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.connection.v1.Msg/UpdateConnectionParams",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// QueryConnectionRequest is the request type for the Query/Connection RPC
@@ -533,6 +574,18 @@ pub struct QueryConnectionConsensusStateResponse {
     /// height at which the proof was retrieved
     #[prost(message, optional, tag = "4")]
     pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryConnectionParamsRequest is the request type for the Query/ConnectionParams RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConnectionParamsRequest {}
+/// QueryConnectionParamsResponse is the response type for the Query/ConnectionParams RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConnectionParamsResponse {
+    /// params defines the parameters of the module.
+    #[prost(message, optional, tag = "1")]
+    pub params: ::core::option::Option<Params>,
 }
 /// Generated client implementations.
 #[cfg(feature = "grpc")]
@@ -692,6 +745,23 @@ pub mod query_client {
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/ibc.core.connection.v1.Query/ConnectionConsensusState",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ConnectionParams queries all parameters of the ibc connection submodule.
+        pub async fn connection_params(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryConnectionParamsRequest>,
+        ) -> Result<tonic::Response<super::QueryConnectionParamsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.connection.v1.Query/ConnectionParams",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }

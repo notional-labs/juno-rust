@@ -1,3 +1,32 @@
+/// DenomTrace contains the base denomination for ICS20 fungible tokens and the
+/// source tracing information path.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DenomTrace {
+    /// path defines the chain of port/channel identifiers used for tracing the
+    /// source of the fungible token.
+    #[prost(string, tag = "1")]
+    pub path: ::prost::alloc::string::String,
+    /// base denomination of the relayed fungible token.
+    #[prost(string, tag = "2")]
+    pub base_denom: ::prost::alloc::string::String,
+}
+/// Params defines the set of IBC transfer parameters.
+/// NOTE: To prevent a single token from being transferred, set the
+/// TransfersEnabled parameter to true and then set the bank module's SendEnabled
+/// parameter for the denomination to false.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Params {
+    /// send_enabled enables or disables all cross-chain token transfers from this
+    /// chain.
+    #[prost(bool, tag = "1")]
+    pub send_enabled: bool,
+    /// receive_enabled enables or disables all cross-chain token transfers to this
+    /// chain.
+    #[prost(bool, tag = "2")]
+    pub receive_enabled: bool,
+}
 /// MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
 /// ICS20 enabled chains. See ICS Spec here:
 /// <https://github.com/cosmos/ibc/tree/master/spec/app/ics-020-fungible-token-transfer#data-structures>
@@ -27,11 +56,36 @@ pub struct MsgTransfer {
     /// The timeout is disabled when set to 0.
     #[prost(uint64, tag = "7")]
     pub timeout_timestamp: u64,
+    /// optional memo
+    #[prost(string, tag = "8")]
+    pub memo: ::prost::alloc::string::String,
 }
 /// MsgTransferResponse defines the Msg/Transfer response type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgTransferResponse {}
+pub struct MsgTransferResponse {
+    /// sequence number of the transfer packet sent
+    #[prost(uint64, tag = "1")]
+    pub sequence: u64,
+}
+/// MsgUpdateParams is the Msg/UpdateParams request type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateParams {
+    /// signer address
+    #[prost(string, tag = "1")]
+    pub signer: ::prost::alloc::string::String,
+    /// params defines the transfer parameters to update.
+    ///
+    /// NOTE: All parameters must be supplied.
+    #[prost(message, optional, tag = "2")]
+    pub params: ::core::option::Option<Params>,
+}
+/// MsgUpdateParamsResponse defines the response structure for executing a
+/// MsgUpdateParams message.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateParamsResponse {}
 /// Generated client implementations.
 #[cfg(feature = "grpc")]
 #[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
@@ -118,43 +172,31 @@ pub mod msg_client {
                 http::uri::PathAndQuery::from_static("/ibc.applications.transfer.v1.Msg/Transfer");
             self.inner.unary(request.into_request(), path, codec).await
         }
+        /// UpdateParams defines a rpc handler for MsgUpdateParams.
+        pub async fn update_params(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgUpdateParams>,
+        ) -> Result<tonic::Response<super::MsgUpdateParamsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.applications.transfer.v1.Msg/UpdateParams",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
-}
-/// DenomTrace contains the base denomination for ICS20 fungible tokens and the
-/// source tracing information path.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DenomTrace {
-    /// path defines the chain of port/channel identifiers used for tracing the
-    /// source of the fungible token.
-    #[prost(string, tag = "1")]
-    pub path: ::prost::alloc::string::String,
-    /// base denomination of the relayed fungible token.
-    #[prost(string, tag = "2")]
-    pub base_denom: ::prost::alloc::string::String,
-}
-/// Params defines the set of IBC transfer parameters.
-/// NOTE: To prevent a single token from being transferred, set the
-/// TransfersEnabled parameter to true and then set the bank module's SendEnabled
-/// parameter for the denomination to false.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Params {
-    /// send_enabled enables or disables all cross-chain token transfers from this
-    /// chain.
-    #[prost(bool, tag = "1")]
-    pub send_enabled: bool,
-    /// receive_enabled enables or disables all cross-chain token transfers to this
-    /// chain.
-    #[prost(bool, tag = "2")]
-    pub receive_enabled: bool,
 }
 /// QueryDenomTraceRequest is the request type for the Query/DenomTrace RPC
 /// method
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct QueryDenomTraceRequest {
-    /// hash (in hex format) of the denomination trace information.
+    /// hash (in hex format) or denom (full denom with ibc prefix) of the denomination trace information.
     #[prost(string, tag = "1")]
     pub hash: ::prost::alloc::string::String,
 }
@@ -221,6 +263,39 @@ pub struct QueryDenomHashResponse {
     /// hash (in hex format) of the denomination trace information.
     #[prost(string, tag = "1")]
     pub hash: ::prost::alloc::string::String,
+}
+/// QueryEscrowAddressRequest is the request type for the EscrowAddress RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryEscrowAddressRequest {
+    /// unique port identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// unique channel identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+}
+/// QueryEscrowAddressResponse is the response type of the EscrowAddress RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryEscrowAddressResponse {
+    /// the escrow account address
+    #[prost(string, tag = "1")]
+    pub escrow_address: ::prost::alloc::string::String,
+}
+/// QueryTotalEscrowForDenomRequest is the request type for TotalEscrowForDenom RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryTotalEscrowForDenomRequest {
+    #[prost(string, tag = "1")]
+    pub denom: ::prost::alloc::string::String,
+}
+/// QueryTotalEscrowForDenomResponse is the response type for TotalEscrowForDenom RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryTotalEscrowForDenomResponse {
+    #[prost(message, optional, tag = "1")]
+    pub amount: ::core::option::Option<super::super::super::super::cosmos::base::v1beta1::Coin>,
 }
 /// Generated client implementations.
 #[cfg(feature = "grpc")]
@@ -295,23 +370,6 @@ pub mod query_client {
             self.inner = self.inner.accept_compressed(encoding);
             self
         }
-        /// DenomTrace queries a denomination trace information.
-        pub async fn denom_trace(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryDenomTraceRequest>,
-        ) -> Result<tonic::Response<super::QueryDenomTraceResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.applications.transfer.v1.Query/DenomTrace",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
         /// DenomTraces queries all denomination traces.
         pub async fn denom_traces(
             &mut self,
@@ -326,6 +384,23 @@ pub mod query_client {
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/ibc.applications.transfer.v1.Query/DenomTraces",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// DenomTrace queries a denomination trace information.
+        pub async fn denom_trace(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryDenomTraceRequest>,
+        ) -> Result<tonic::Response<super::QueryDenomTraceResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.applications.transfer.v1.Query/DenomTrace",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -362,7 +437,69 @@ pub mod query_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        /// EscrowAddress returns the escrow address for a particular port and channel id.
+        pub async fn escrow_address(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryEscrowAddressRequest>,
+        ) -> Result<tonic::Response<super::QueryEscrowAddressResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.applications.transfer.v1.Query/EscrowAddress",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// TotalEscrowForDenom returns the total amount of tokens in escrow based on the denom.
+        pub async fn total_escrow_for_denom(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryTotalEscrowForDenomRequest>,
+        ) -> Result<tonic::Response<super::QueryTotalEscrowForDenomResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.applications.transfer.v1.Query/TotalEscrowForDenom",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
+}
+/// Allocation defines the spend limit for a particular port and channel
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Allocation {
+    /// the port on which the packet will be sent
+    #[prost(string, tag = "1")]
+    pub source_port: ::prost::alloc::string::String,
+    /// the channel by which the packet will be sent
+    #[prost(string, tag = "2")]
+    pub source_channel: ::prost::alloc::string::String,
+    /// spend limitation on the channel
+    #[prost(message, repeated, tag = "3")]
+    pub spend_limit:
+        ::prost::alloc::vec::Vec<super::super::super::super::cosmos::base::v1beta1::Coin>,
+    /// allow list of receivers, an empty allow list permits any receiver address
+    #[prost(string, repeated, tag = "4")]
+    pub allow_list: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// TransferAuthorization allows the grantee to spend up to spend_limit coins from
+/// the granter's account for ibc transfer on a specific channel
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TransferAuthorization {
+    /// port and channel amounts
+    #[prost(message, repeated, tag = "1")]
+    pub allocations: ::prost::alloc::vec::Vec<Allocation>,
 }
 /// GenesisState defines the ibc-transfer genesis state
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -374,4 +511,9 @@ pub struct GenesisState {
     pub denom_traces: ::prost::alloc::vec::Vec<DenomTrace>,
     #[prost(message, optional, tag = "3")]
     pub params: ::core::option::Option<Params>,
+    /// total_escrowed contains the total amount of tokens escrowed
+    /// by the transfer module
+    #[prost(message, repeated, tag = "4")]
+    pub total_escrowed:
+        ::prost::alloc::vec::Vec<super::super::super::super::cosmos::base::v1beta1::Coin>,
 }

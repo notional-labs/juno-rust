@@ -20,15 +20,17 @@ use walkdir::WalkDir;
 static QUIET: AtomicBool = AtomicBool::new(false);
 
 /// The Cosmos SDK commit or tag to be cloned and used to build the proto files
-const COSMOS_SDK_REV: &str = "v0.45.4";
+const COSMOS_SDK_REV: &str = "v0.46.12";
 
 /// The Cosmos ibc-go commit or tag to be cloned and used to build the proto files
-const IBC_REV: &str = "v3.0.0";
+const IBC_REV: &str = "v5.2.0";
 
 /// The wasmd commit or tag to be cloned and used to build the proto files
-const WASMD_REV: &str = "v0.23.0";
+const WASMD_REV: &str = "v0.29.2";
 
-const JUNO_REV: &str = "oracle";
+const JUNO_REV: &str = "nguyen/replace-validate-claim-logic";
+
+const OSMOSIS_REV: &str = "v10.0.0";
 
 // All paths must end with a / and either be absolute or include a ./ to reference the current
 // working directory.
@@ -41,6 +43,10 @@ const COSMOS_SDK_DIR: &str = "../dependencies/cosmos-sdk";
 const IBC_DIR: &str = "../dependencies/ibc-go";
 /// Directory where the submodule is located
 const WASMD_DIR: &str = "../dependencies/wasmd";
+/// Directory where the submodule is located
+const JUNO_DIR: &str = "../dependencies/quicksilver";
+/// Directory where the submodule is located
+const OSMOSIS_DIR: &str = "../dependencies/osmosis";
 /// A temporary directory for proto building
 const TMP_BUILD_DIR: &str = "/tmp/tmp-protobuf/";
 
@@ -78,31 +84,37 @@ fn main() {
     let temp_sdk_dir = tmp_build_dir.join("cosmos-sdk");
     let temp_ibc_dir = tmp_build_dir.join("ibc-go");
     let temp_wasmd_dir = tmp_build_dir.join("wasmd");
-    let temp_juno_dir = tmp_build_dir.join("juno");
+    let temp_juno_dir = tmp_build_dir.join("quicksilver");
+    let temp_osmosis_dir = tmp_build_dir.join("osmosis");
 
 
     fs::create_dir_all(&temp_sdk_dir).unwrap();
     fs::create_dir_all(&temp_ibc_dir).unwrap();
     fs::create_dir_all(&temp_wasmd_dir).unwrap();
     fs::create_dir_all(&temp_juno_dir).unwrap();
+    fs::create_dir_all(&temp_osmosis_dir).unwrap();
 
 
     // cannot update.
     // update_submodules();
-    output_sdk_version(&temp_sdk_dir);
+    // output_sdk_version(&temp_sdk_dir);
     output_ibc_version(&temp_ibc_dir);
-    output_wasmd_version(&temp_wasmd_dir);
-    output_juno_version(&temp_juno_dir);
-    compile_sdk_protos_and_services(&temp_sdk_dir);
+    // output_wasmd_version(&temp_wasmd_dir);
+    // output_juno_version(&temp_juno_dir);
+    // output_osmosis_version(&temp_osmosis_dir);
+    // compile_sdk_protos_and_services(&temp_sdk_dir);
     compile_ibc_protos_and_services(&temp_ibc_dir);
-    compile_wasmd_proto_and_services(&temp_wasmd_dir);
+    // compile_wasmd_proto_and_services(&temp_wasmd_dir);
     // compile_juno_protos_and_services(&temp_juno_dir);
+    // compile_osmosis_protos_and_services(&temp_osmosis_dir);
 
-    copy_generated_files(&temp_sdk_dir, &proto_dir.join("cosmos-sdk"));
+    // copy_generated_files(&temp_sdk_dir, &proto_dir.join("cosmos-sdk"));
     copy_generated_files(&temp_ibc_dir, &proto_dir.join("ibc-go"));
-    copy_generated_files(&temp_wasmd_dir, &proto_dir.join("wasmd"));
+    // copy_generated_files(&temp_wasmd_dir, &proto_dir.join("wasmd"));
+    // copy_generated_files(&temp_juno_dir, &proto_dir.join("quicksilver"));
+    // copy_generated_files(&temp_osmosis_dir, &proto_dir.join("osmosis"));
 
-    apply_patches(&proto_dir);
+    // apply_patches(&proto_dir);
 
     info!("Running rustfmt on prost/tonic-generated code");
     run_rustfmt(&proto_dir);
@@ -211,8 +223,13 @@ fn output_wasmd_version(out_dir: &Path) {
 }
 
 fn output_juno_version(out_dir: &Path) {
-    let path = out_dir.join("JUNO_COMMIT");
+    let path = out_dir.join("QUICKSILVER_COMMIT");
     fs::write(path, JUNO_REV).unwrap();
+}
+
+fn output_osmosis_version(out_dir: &Path) {
+    let path = out_dir.join("OSMOSIS_COMMIT");
+    fs::write(path, OSMOSIS_REV).unwrap();
 }
 
 fn compile_sdk_protos_and_services(out_dir: &Path) {
@@ -253,9 +270,6 @@ fn compile_sdk_protos_and_services(out_dir: &Path) {
         format!("{}/proto/cosmos/tx", sdk_dir.display()),
         format!("{}/proto/cosmos/upgrade", sdk_dir.display()),
         format!("{}/proto/cosmos/vesting", sdk_dir.display()),
-        format!("{}/proto/juno/oracle", sdk_dir.display()),
-        format!("{}/proto/juno/mint", sdk_dir.display()),
-        format!("{}/proto/juno/oracle", sdk_dir.display()),
     ];
 
     // List available proto files
@@ -278,6 +292,98 @@ fn compile_sdk_protos_and_services(out_dir: &Path) {
     info!("=> Done!");
 }
 
+
+fn compile_juno_protos_and_services(out_dir: &Path) {
+    info!(
+        "Compiling cosmos-sdk .proto files to Rust into '{}'...",
+        out_dir.display()
+    );
+
+    let root = env!("CARGO_MANIFEST_DIR");
+    let sdk_dir = Path::new(JUNO_DIR);
+
+    let proto_includes_paths = [
+        format!("{}/../proto", root),
+        format!("{}/proto", sdk_dir.display()),
+        format!("{}/third_party/proto", sdk_dir.display()),
+    ];
+
+    // Paths
+    let proto_paths = [
+        format!("{}/../proto/definitions/mock", root),
+        format!("{}/proto/quicksilver/airdrop", sdk_dir.display()),
+        format!("{}/proto/quicksilver/claimsmanager", sdk_dir.display()),
+        format!("{}/proto/quicksilver/epochs", sdk_dir.display()),
+        format!("{}/proto/quicksilver/interchainquery", sdk_dir.display()),
+        format!("{}/proto/quicksilver/interchainstaking", sdk_dir.display()),
+        format!("{}/proto/quicksilver/mint", sdk_dir.display()),
+        format!("{}/proto/quicksilver/participationrewards", sdk_dir.display()),
+        format!("{}/proto/quicksilver/tokenfactory", sdk_dir.display()),
+    ];
+
+    // List available proto files
+    let mut protos: Vec<PathBuf> = vec![];
+    collect_protos(&proto_paths, &mut protos);
+
+    // List available paths for dependencies
+    let includes: Vec<PathBuf> = proto_includes_paths.iter().map(PathBuf::from).collect();
+
+    // Compile all of the proto files, along with grpc service clients
+    info!("Compiling proto definitions and clients for GRPC services!");
+    tonic_build::configure()
+        .build_client(true)
+        .build_server(true)
+        .out_dir(out_dir)
+        .extern_path(".tendermint", "::tendermint_proto")
+        .compile(&protos, &includes)
+        .unwrap();
+
+    info!("=> Done!");
+}
+
+fn compile_osmosis_protos_and_services(out_dir: &Path) {
+    info!(
+        "Compiling cosmos-sdk .proto files to Rust into '{}'...",
+        out_dir.display()
+    );
+
+    let root = env!("CARGO_MANIFEST_DIR");
+    let sdk_dir = Path::new(OSMOSIS_DIR);
+
+    let proto_includes_paths = [
+        format!("{}/../proto", root),
+        format!("{}/proto", sdk_dir.display()),
+        format!("{}/third_party/proto", sdk_dir.display()),
+    ];
+
+    // Paths
+    let proto_paths = [
+        format!("{}/../proto/definitions/mock", root),
+        format!("{}/proto/osmosis/gamm/pool-models/balancer", sdk_dir.display()),
+        format!("{}/proto/osmosis/gamm/pool-models/stableswap", sdk_dir.display()),
+        format!("{}/proto/osmosis/gamm/v1beta1", sdk_dir.display()),
+        format!("{}/proto/osmosis/lockup", sdk_dir.display()),
+    ];
+
+    // List available proto files
+    let mut protos: Vec<PathBuf> = vec![];
+    collect_protos(&proto_paths, &mut protos);
+
+    // List available paths for dependencies
+    let includes: Vec<PathBuf> = proto_includes_paths.iter().map(PathBuf::from).collect();
+
+    // Compile all of the proto files, along with grpc service clients
+    info!("Compiling proto definitions and clients for GRPC services!");
+    tonic_build::configure()
+        .build_client(true)
+        .build_server(true)
+        .out_dir(out_dir)
+        .extern_path(".tendermint", "::tendermint_proto")
+        .compile(&protos, &includes)
+        .unwrap();
+
+    info!("=> Done!");
+}
 
 fn compile_wasmd_proto_and_services(out_dir: &Path) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
