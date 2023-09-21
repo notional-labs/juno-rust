@@ -153,6 +153,19 @@ pub mod acknowledgement {
         Error(::prost::alloc::string::String),
     }
 }
+/// Timeout defines an execution deadline structure for 04-channel handlers.
+/// This includes packet lifecycle handlers as well as the upgrade handshake handlers.
+/// A valid Timeout contains either one or both of a timestamp and block height (sequence).
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Timeout {
+    /// block height after which the packet or upgrade times out
+    #[prost(message, optional, tag = "1")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+    /// block timestamp (in nanoseconds) after which the packet or upgrade times out
+    #[prost(uint64, tag = "2")]
+    pub timestamp: u64,
+}
 /// State defines if a channel is in one of the following states:
 /// CLOSED, INIT, TRYOPEN, OPEN or UNINITIALIZED.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -231,734 +244,6 @@ impl Order {
         }
     }
 }
-/// GenesisState defines the ibc channel submodule's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    #[prost(message, repeated, tag = "1")]
-    pub channels: ::prost::alloc::vec::Vec<IdentifiedChannel>,
-    #[prost(message, repeated, tag = "2")]
-    pub acknowledgements: ::prost::alloc::vec::Vec<PacketState>,
-    #[prost(message, repeated, tag = "3")]
-    pub commitments: ::prost::alloc::vec::Vec<PacketState>,
-    #[prost(message, repeated, tag = "4")]
-    pub receipts: ::prost::alloc::vec::Vec<PacketState>,
-    #[prost(message, repeated, tag = "5")]
-    pub send_sequences: ::prost::alloc::vec::Vec<PacketSequence>,
-    #[prost(message, repeated, tag = "6")]
-    pub recv_sequences: ::prost::alloc::vec::Vec<PacketSequence>,
-    #[prost(message, repeated, tag = "7")]
-    pub ack_sequences: ::prost::alloc::vec::Vec<PacketSequence>,
-    /// the sequence for the next generated channel identifier
-    #[prost(uint64, tag = "8")]
-    pub next_channel_sequence: u64,
-}
-/// PacketSequence defines the genesis type necessary to retrieve and store
-/// next send and receive sequences.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PacketSequence {
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    #[prost(uint64, tag = "3")]
-    pub sequence: u64,
-}
-/// QueryChannelRequest is the request type for the Query/Channel RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-}
-/// QueryChannelResponse is the response type for the Query/Channel RPC method.
-/// Besides the Channel end, it includes a proof and the height from which the
-/// proof was retrieved.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelResponse {
-    /// channel associated with the request identifiers
-    #[prost(message, optional, tag = "1")]
-    pub channel: ::core::option::Option<Channel>,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "2")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "3")]
-    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryChannelsRequest is the request type for the Query/Channels RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelsRequest {
-    /// pagination request
-    #[prost(message, optional, tag = "1")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
-    >,
-}
-/// QueryChannelsResponse is the response type for the Query/Channels RPC method.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelsResponse {
-    /// list of stored channels of the chain.
-    #[prost(message, repeated, tag = "1")]
-    pub channels: ::prost::alloc::vec::Vec<IdentifiedChannel>,
-    /// pagination response
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
-    >,
-    /// query block height
-    #[prost(message, optional, tag = "3")]
-    pub height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryConnectionChannelsRequest is the request type for the
-/// Query/QueryConnectionChannels RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryConnectionChannelsRequest {
-    /// connection unique identifier
-    #[prost(string, tag = "1")]
-    pub connection: ::prost::alloc::string::String,
-    /// pagination request
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
-    >,
-}
-/// QueryConnectionChannelsResponse is the Response type for the
-/// Query/QueryConnectionChannels RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryConnectionChannelsResponse {
-    /// list of channels associated with a connection.
-    #[prost(message, repeated, tag = "1")]
-    pub channels: ::prost::alloc::vec::Vec<IdentifiedChannel>,
-    /// pagination response
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
-    >,
-    /// query block height
-    #[prost(message, optional, tag = "3")]
-    pub height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryChannelClientStateRequest is the request type for the Query/ClientState
-/// RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelClientStateRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-}
-/// QueryChannelClientStateResponse is the Response type for the
-/// Query/QueryChannelClientState RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelClientStateResponse {
-    /// client state associated with the channel
-    #[prost(message, optional, tag = "1")]
-    pub identified_client_state:
-        ::core::option::Option<super::super::client::v1::IdentifiedClientState>,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "2")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "3")]
-    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryChannelConsensusStateRequest is the request type for the
-/// Query/ConsensusState RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelConsensusStateRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// revision number of the consensus state
-    #[prost(uint64, tag = "3")]
-    pub revision_number: u64,
-    /// revision height of the consensus state
-    #[prost(uint64, tag = "4")]
-    pub revision_height: u64,
-}
-/// QueryChannelClientStateResponse is the Response type for the
-/// Query/QueryChannelClientState RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryChannelConsensusStateResponse {
-    /// consensus state associated with the channel
-    #[prost(message, optional, tag = "1")]
-    pub consensus_state: ::core::option::Option<::prost_types::Any>,
-    /// client ID associated with the consensus state
-    #[prost(string, tag = "2")]
-    pub client_id: ::prost::alloc::string::String,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "3")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "4")]
-    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryPacketCommitmentRequest is the request type for the
-/// Query/PacketCommitment RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketCommitmentRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// packet sequence
-    #[prost(uint64, tag = "3")]
-    pub sequence: u64,
-}
-/// QueryPacketCommitmentResponse defines the client query response for a packet
-/// which also includes a proof and the height from which the proof was
-/// retrieved
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketCommitmentResponse {
-    /// packet associated with the request fields
-    #[prost(bytes = "vec", tag = "1")]
-    pub commitment: ::prost::alloc::vec::Vec<u8>,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "2")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "3")]
-    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryPacketCommitmentsRequest is the request type for the
-/// Query/QueryPacketCommitments RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketCommitmentsRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// pagination request
-    #[prost(message, optional, tag = "3")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
-    >,
-}
-/// QueryPacketCommitmentsResponse is the request type for the
-/// Query/QueryPacketCommitments RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketCommitmentsResponse {
-    #[prost(message, repeated, tag = "1")]
-    pub commitments: ::prost::alloc::vec::Vec<PacketState>,
-    /// pagination response
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
-    >,
-    /// query block height
-    #[prost(message, optional, tag = "3")]
-    pub height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryPacketReceiptRequest is the request type for the
-/// Query/PacketReceipt RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketReceiptRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// packet sequence
-    #[prost(uint64, tag = "3")]
-    pub sequence: u64,
-}
-/// QueryPacketReceiptResponse defines the client query response for a packet
-/// receipt which also includes a proof, and the height from which the proof was
-/// retrieved
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketReceiptResponse {
-    /// success flag for if receipt exists
-    #[prost(bool, tag = "2")]
-    pub received: bool,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "3")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "4")]
-    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryPacketAcknowledgementRequest is the request type for the
-/// Query/PacketAcknowledgement RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketAcknowledgementRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// packet sequence
-    #[prost(uint64, tag = "3")]
-    pub sequence: u64,
-}
-/// QueryPacketAcknowledgementResponse defines the client query response for a
-/// packet which also includes a proof and the height from which the
-/// proof was retrieved
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketAcknowledgementResponse {
-    /// packet associated with the request fields
-    #[prost(bytes = "vec", tag = "1")]
-    pub acknowledgement: ::prost::alloc::vec::Vec<u8>,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "2")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "3")]
-    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryPacketAcknowledgementsRequest is the request type for the
-/// Query/QueryPacketCommitments RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketAcknowledgementsRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// pagination request
-    #[prost(message, optional, tag = "3")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
-    >,
-    /// list of packet sequences
-    #[prost(uint64, repeated, tag = "4")]
-    pub packet_commitment_sequences: ::prost::alloc::vec::Vec<u64>,
-}
-/// QueryPacketAcknowledgemetsResponse is the request type for the
-/// Query/QueryPacketAcknowledgements RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryPacketAcknowledgementsResponse {
-    #[prost(message, repeated, tag = "1")]
-    pub acknowledgements: ::prost::alloc::vec::Vec<PacketState>,
-    /// pagination response
-    #[prost(message, optional, tag = "2")]
-    pub pagination: ::core::option::Option<
-        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
-    >,
-    /// query block height
-    #[prost(message, optional, tag = "3")]
-    pub height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryUnreceivedPacketsRequest is the request type for the
-/// Query/UnreceivedPackets RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUnreceivedPacketsRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// list of packet sequences
-    #[prost(uint64, repeated, tag = "3")]
-    pub packet_commitment_sequences: ::prost::alloc::vec::Vec<u64>,
-}
-/// QueryUnreceivedPacketsResponse is the response type for the
-/// Query/UnreceivedPacketCommitments RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUnreceivedPacketsResponse {
-    /// list of unreceived packet sequences
-    #[prost(uint64, repeated, tag = "1")]
-    pub sequences: ::prost::alloc::vec::Vec<u64>,
-    /// query block height
-    #[prost(message, optional, tag = "2")]
-    pub height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryUnreceivedAcks is the request type for the
-/// Query/UnreceivedAcks RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUnreceivedAcksRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-    /// list of acknowledgement sequences
-    #[prost(uint64, repeated, tag = "3")]
-    pub packet_ack_sequences: ::prost::alloc::vec::Vec<u64>,
-}
-/// QueryUnreceivedAcksResponse is the response type for the
-/// Query/UnreceivedAcks RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryUnreceivedAcksResponse {
-    /// list of unreceived acknowledgement sequences
-    #[prost(uint64, repeated, tag = "1")]
-    pub sequences: ::prost::alloc::vec::Vec<u64>,
-    /// query block height
-    #[prost(message, optional, tag = "2")]
-    pub height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// QueryNextSequenceReceiveRequest is the request type for the
-/// Query/QueryNextSequenceReceiveRequest RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryNextSequenceReceiveRequest {
-    /// port unique identifier
-    #[prost(string, tag = "1")]
-    pub port_id: ::prost::alloc::string::String,
-    /// channel unique identifier
-    #[prost(string, tag = "2")]
-    pub channel_id: ::prost::alloc::string::String,
-}
-/// QuerySequenceResponse is the request type for the
-/// Query/QueryNextSequenceReceiveResponse RPC method
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct QueryNextSequenceReceiveResponse {
-    /// next sequence receive number
-    #[prost(uint64, tag = "1")]
-    pub next_sequence_receive: u64,
-    /// merkle proof of existence
-    #[prost(bytes = "vec", tag = "2")]
-    pub proof: ::prost::alloc::vec::Vec<u8>,
-    /// height at which the proof was retrieved
-    #[prost(message, optional, tag = "3")]
-    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
-}
-/// Generated client implementations.
-#[cfg(feature = "grpc")]
-#[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
-pub mod query_client {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
-    use tonic::codegen::*;
-    /// Query provides defines the gRPC querier service
-    #[derive(Debug, Clone)]
-    pub struct QueryClient<T> {
-        inner: tonic::client::Grpc<T>,
-    }
-    #[cfg(feature = "grpc-transport")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "grpc-transport")))]
-    impl QueryClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
-    impl<T> QueryClient<T>
-    where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
-        T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
-    {
-        pub fn new(inner: T) -> Self {
-            let inner = tonic::client::Grpc::new(inner);
-            Self { inner }
-        }
-        pub fn with_origin(inner: T, origin: Uri) -> Self {
-            let inner = tonic::client::Grpc::with_origin(inner, origin);
-            Self { inner }
-        }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> QueryClient<InterceptedService<T, F>>
-        where
-            F: tonic::service::Interceptor,
-            T::ResponseBody: Default,
-            T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-                Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
-                >,
-            >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
-        {
-            QueryClient::new(InterceptedService::new(inner, interceptor))
-        }
-        /// Compress requests with the given encoding.
-        ///
-        /// This requires the server to support it otherwise it might respond with an
-        /// error.
-        #[must_use]
-        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.send_compressed(encoding);
-            self
-        }
-        /// Enable decompressing responses.
-        #[must_use]
-        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.accept_compressed(encoding);
-            self
-        }
-        /// Channel queries an IBC Channel.
-        pub async fn channel(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryChannelRequest>,
-        ) -> Result<tonic::Response<super::QueryChannelResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/Channel");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// Channels queries all the IBC channels of a chain.
-        pub async fn channels(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryChannelsRequest>,
-        ) -> Result<tonic::Response<super::QueryChannelsResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/Channels");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// ConnectionChannels queries all the channels associated with a connection
-        /// end.
-        pub async fn connection_channels(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryConnectionChannelsRequest>,
-        ) -> Result<tonic::Response<super::QueryConnectionChannelsResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/ConnectionChannels",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// ChannelClientState queries for the client state for the channel associated
-        /// with the provided channel identifiers.
-        pub async fn channel_client_state(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryChannelClientStateRequest>,
-        ) -> Result<tonic::Response<super::QueryChannelClientStateResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/ChannelClientState",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// ChannelConsensusState queries for the consensus state for the channel
-        /// associated with the provided channel identifiers.
-        pub async fn channel_consensus_state(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryChannelConsensusStateRequest>,
-        ) -> Result<tonic::Response<super::QueryChannelConsensusStateResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/ChannelConsensusState",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// PacketCommitment queries a stored packet commitment hash.
-        pub async fn packet_commitment(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryPacketCommitmentRequest>,
-        ) -> Result<tonic::Response<super::QueryPacketCommitmentResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/PacketCommitment");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// PacketCommitments returns all the packet commitments hashes associated
-        /// with a channel.
-        pub async fn packet_commitments(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryPacketCommitmentsRequest>,
-        ) -> Result<tonic::Response<super::QueryPacketCommitmentsResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/PacketCommitments",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// PacketReceipt queries if a given packet sequence has been received on the
-        /// queried chain
-        pub async fn packet_receipt(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryPacketReceiptRequest>,
-        ) -> Result<tonic::Response<super::QueryPacketReceiptResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/PacketReceipt");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// PacketAcknowledgement queries a stored packet acknowledgement hash.
-        pub async fn packet_acknowledgement(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryPacketAcknowledgementRequest>,
-        ) -> Result<tonic::Response<super::QueryPacketAcknowledgementResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/PacketAcknowledgement",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// PacketAcknowledgements returns all the packet acknowledgements associated
-        /// with a channel.
-        pub async fn packet_acknowledgements(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryPacketAcknowledgementsRequest>,
-        ) -> Result<tonic::Response<super::QueryPacketAcknowledgementsResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/PacketAcknowledgements",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// UnreceivedPackets returns all the unreceived IBC packets associated with a
-        /// channel and sequences.
-        pub async fn unreceived_packets(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryUnreceivedPacketsRequest>,
-        ) -> Result<tonic::Response<super::QueryUnreceivedPacketsResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/UnreceivedPackets",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// UnreceivedAcks returns all the unreceived IBC acknowledgements associated
-        /// with a channel and sequences.
-        pub async fn unreceived_acks(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryUnreceivedAcksRequest>,
-        ) -> Result<tonic::Response<super::QueryUnreceivedAcksResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/UnreceivedAcks");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// NextSequenceReceive returns the next receive sequence for a given channel.
-        pub async fn next_sequence_receive(
-            &mut self,
-            request: impl tonic::IntoRequest<super::QueryNextSequenceReceiveRequest>,
-        ) -> Result<tonic::Response<super::QueryNextSequenceReceiveResponse>, tonic::Status>
-        {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/ibc.core.channel.v1.Query/NextSequenceReceive",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-    }
-}
 /// MsgChannelOpenInit defines an sdk.Msg to initialize a channel handshake. It
 /// is called by a relayer on Chain A.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1010,6 +295,8 @@ pub struct MsgChannelOpenTry {
 pub struct MsgChannelOpenTryResponse {
     #[prost(string, tag = "1")]
     pub version: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
 }
 /// MsgChannelOpenAck defines a msg sent by a Relayer to Chain A to acknowledge
 /// the change of channel state to TRYOPEN on Chain B.
@@ -1445,4 +732,775 @@ pub mod msg_client {
             self.inner.unary(request.into_request(), path, codec).await
         }
     }
+}
+/// QueryChannelRequest is the request type for the Query/Channel RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+}
+/// QueryChannelResponse is the response type for the Query/Channel RPC method.
+/// Besides the Channel end, it includes a proof and the height from which the
+/// proof was retrieved.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelResponse {
+    /// channel associated with the request identifiers
+    #[prost(message, optional, tag = "1")]
+    pub channel: ::core::option::Option<Channel>,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryChannelsRequest is the request type for the Query/Channels RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelsRequest {
+    /// pagination request
+    #[prost(message, optional, tag = "1")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
+    >,
+}
+/// QueryChannelsResponse is the response type for the Query/Channels RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelsResponse {
+    /// list of stored channels of the chain.
+    #[prost(message, repeated, tag = "1")]
+    pub channels: ::prost::alloc::vec::Vec<IdentifiedChannel>,
+    /// pagination response
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
+    >,
+    /// query block height
+    #[prost(message, optional, tag = "3")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryConnectionChannelsRequest is the request type for the
+/// Query/QueryConnectionChannels RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConnectionChannelsRequest {
+    /// connection unique identifier
+    #[prost(string, tag = "1")]
+    pub connection: ::prost::alloc::string::String,
+    /// pagination request
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
+    >,
+}
+/// QueryConnectionChannelsResponse is the Response type for the
+/// Query/QueryConnectionChannels RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryConnectionChannelsResponse {
+    /// list of channels associated with a connection.
+    #[prost(message, repeated, tag = "1")]
+    pub channels: ::prost::alloc::vec::Vec<IdentifiedChannel>,
+    /// pagination response
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
+    >,
+    /// query block height
+    #[prost(message, optional, tag = "3")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryChannelClientStateRequest is the request type for the Query/ClientState
+/// RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelClientStateRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+}
+/// QueryChannelClientStateResponse is the Response type for the
+/// Query/QueryChannelClientState RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelClientStateResponse {
+    /// client state associated with the channel
+    #[prost(message, optional, tag = "1")]
+    pub identified_client_state:
+        ::core::option::Option<super::super::client::v1::IdentifiedClientState>,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryChannelConsensusStateRequest is the request type for the
+/// Query/ConsensusState RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelConsensusStateRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// revision number of the consensus state
+    #[prost(uint64, tag = "3")]
+    pub revision_number: u64,
+    /// revision height of the consensus state
+    #[prost(uint64, tag = "4")]
+    pub revision_height: u64,
+}
+/// QueryChannelClientStateResponse is the Response type for the
+/// Query/QueryChannelClientState RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryChannelConsensusStateResponse {
+    /// consensus state associated with the channel
+    #[prost(message, optional, tag = "1")]
+    pub consensus_state: ::core::option::Option<::prost_types::Any>,
+    /// client ID associated with the consensus state
+    #[prost(string, tag = "2")]
+    pub client_id: ::prost::alloc::string::String,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "3")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "4")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryPacketCommitmentRequest is the request type for the
+/// Query/PacketCommitment RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketCommitmentRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// packet sequence
+    #[prost(uint64, tag = "3")]
+    pub sequence: u64,
+}
+/// QueryPacketCommitmentResponse defines the client query response for a packet
+/// which also includes a proof and the height from which the proof was
+/// retrieved
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketCommitmentResponse {
+    /// packet associated with the request fields
+    #[prost(bytes = "vec", tag = "1")]
+    pub commitment: ::prost::alloc::vec::Vec<u8>,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryPacketCommitmentsRequest is the request type for the
+/// Query/QueryPacketCommitments RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketCommitmentsRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// pagination request
+    #[prost(message, optional, tag = "3")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
+    >,
+}
+/// QueryPacketCommitmentsResponse is the request type for the
+/// Query/QueryPacketCommitments RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketCommitmentsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub commitments: ::prost::alloc::vec::Vec<PacketState>,
+    /// pagination response
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
+    >,
+    /// query block height
+    #[prost(message, optional, tag = "3")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryPacketReceiptRequest is the request type for the
+/// Query/PacketReceipt RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketReceiptRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// packet sequence
+    #[prost(uint64, tag = "3")]
+    pub sequence: u64,
+}
+/// QueryPacketReceiptResponse defines the client query response for a packet
+/// receipt which also includes a proof, and the height from which the proof was
+/// retrieved
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketReceiptResponse {
+    /// success flag for if receipt exists
+    #[prost(bool, tag = "2")]
+    pub received: bool,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "3")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "4")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryPacketAcknowledgementRequest is the request type for the
+/// Query/PacketAcknowledgement RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketAcknowledgementRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// packet sequence
+    #[prost(uint64, tag = "3")]
+    pub sequence: u64,
+}
+/// QueryPacketAcknowledgementResponse defines the client query response for a
+/// packet which also includes a proof and the height from which the
+/// proof was retrieved
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketAcknowledgementResponse {
+    /// packet associated with the request fields
+    #[prost(bytes = "vec", tag = "1")]
+    pub acknowledgement: ::prost::alloc::vec::Vec<u8>,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryPacketAcknowledgementsRequest is the request type for the
+/// Query/QueryPacketCommitments RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketAcknowledgementsRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// pagination request
+    #[prost(message, optional, tag = "3")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageRequest,
+    >,
+    /// list of packet sequences
+    #[prost(uint64, repeated, tag = "4")]
+    pub packet_commitment_sequences: ::prost::alloc::vec::Vec<u64>,
+}
+/// QueryPacketAcknowledgemetsResponse is the request type for the
+/// Query/QueryPacketAcknowledgements RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryPacketAcknowledgementsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub acknowledgements: ::prost::alloc::vec::Vec<PacketState>,
+    /// pagination response
+    #[prost(message, optional, tag = "2")]
+    pub pagination: ::core::option::Option<
+        super::super::super::super::cosmos::base::query::v1beta1::PageResponse,
+    >,
+    /// query block height
+    #[prost(message, optional, tag = "3")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryUnreceivedPacketsRequest is the request type for the
+/// Query/UnreceivedPackets RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUnreceivedPacketsRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// list of packet sequences
+    #[prost(uint64, repeated, tag = "3")]
+    pub packet_commitment_sequences: ::prost::alloc::vec::Vec<u64>,
+}
+/// QueryUnreceivedPacketsResponse is the response type for the
+/// Query/UnreceivedPacketCommitments RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUnreceivedPacketsResponse {
+    /// list of unreceived packet sequences
+    #[prost(uint64, repeated, tag = "1")]
+    pub sequences: ::prost::alloc::vec::Vec<u64>,
+    /// query block height
+    #[prost(message, optional, tag = "2")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryUnreceivedAcks is the request type for the
+/// Query/UnreceivedAcks RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUnreceivedAcksRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    /// list of acknowledgement sequences
+    #[prost(uint64, repeated, tag = "3")]
+    pub packet_ack_sequences: ::prost::alloc::vec::Vec<u64>,
+}
+/// QueryUnreceivedAcksResponse is the response type for the
+/// Query/UnreceivedAcks RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryUnreceivedAcksResponse {
+    /// list of unreceived acknowledgement sequences
+    #[prost(uint64, repeated, tag = "1")]
+    pub sequences: ::prost::alloc::vec::Vec<u64>,
+    /// query block height
+    #[prost(message, optional, tag = "2")]
+    pub height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryNextSequenceReceiveRequest is the request type for the
+/// Query/QueryNextSequenceReceiveRequest RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryNextSequenceReceiveRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+}
+/// QuerySequenceResponse is the request type for the
+/// Query/QueryNextSequenceReceiveResponse RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryNextSequenceReceiveResponse {
+    /// next sequence receive number
+    #[prost(uint64, tag = "1")]
+    pub next_sequence_receive: u64,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// QueryNextSequenceSendRequest is the request type for the
+/// Query/QueryNextSequenceSend RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryNextSequenceSendRequest {
+    /// port unique identifier
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    /// channel unique identifier
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+}
+/// QueryNextSequenceSendResponse is the request type for the
+/// Query/QueryNextSequenceSend RPC method
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct QueryNextSequenceSendResponse {
+    /// next sequence send number
+    #[prost(uint64, tag = "1")]
+    pub next_sequence_send: u64,
+    /// merkle proof of existence
+    #[prost(bytes = "vec", tag = "2")]
+    pub proof: ::prost::alloc::vec::Vec<u8>,
+    /// height at which the proof was retrieved
+    #[prost(message, optional, tag = "3")]
+    pub proof_height: ::core::option::Option<super::super::client::v1::Height>,
+}
+/// Generated client implementations.
+#[cfg(feature = "grpc")]
+#[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
+pub mod query_client {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
+    /// Query provides defines the gRPC querier service
+    #[derive(Debug, Clone)]
+    pub struct QueryClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    #[cfg(feature = "grpc-transport")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "grpc-transport")))]
+    impl QueryClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> QueryClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> QueryClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + Send + Sync,
+        {
+            QueryClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Channel queries an IBC Channel.
+        pub async fn channel(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryChannelRequest>,
+        ) -> Result<tonic::Response<super::QueryChannelResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/Channel");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// Channels queries all the IBC channels of a chain.
+        pub async fn channels(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryChannelsRequest>,
+        ) -> Result<tonic::Response<super::QueryChannelsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/Channels");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ConnectionChannels queries all the channels associated with a connection
+        /// end.
+        pub async fn connection_channels(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryConnectionChannelsRequest>,
+        ) -> Result<tonic::Response<super::QueryConnectionChannelsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/ConnectionChannels",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ChannelClientState queries for the client state for the channel associated
+        /// with the provided channel identifiers.
+        pub async fn channel_client_state(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryChannelClientStateRequest>,
+        ) -> Result<tonic::Response<super::QueryChannelClientStateResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/ChannelClientState",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// ChannelConsensusState queries for the consensus state for the channel
+        /// associated with the provided channel identifiers.
+        pub async fn channel_consensus_state(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryChannelConsensusStateRequest>,
+        ) -> Result<tonic::Response<super::QueryChannelConsensusStateResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/ChannelConsensusState",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// PacketCommitment queries a stored packet commitment hash.
+        pub async fn packet_commitment(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryPacketCommitmentRequest>,
+        ) -> Result<tonic::Response<super::QueryPacketCommitmentResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/PacketCommitment");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// PacketCommitments returns all the packet commitments hashes associated
+        /// with a channel.
+        pub async fn packet_commitments(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryPacketCommitmentsRequest>,
+        ) -> Result<tonic::Response<super::QueryPacketCommitmentsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/PacketCommitments",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// PacketReceipt queries if a given packet sequence has been received on the
+        /// queried chain
+        pub async fn packet_receipt(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryPacketReceiptRequest>,
+        ) -> Result<tonic::Response<super::QueryPacketReceiptResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/PacketReceipt");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// PacketAcknowledgement queries a stored packet acknowledgement hash.
+        pub async fn packet_acknowledgement(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryPacketAcknowledgementRequest>,
+        ) -> Result<tonic::Response<super::QueryPacketAcknowledgementResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/PacketAcknowledgement",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// PacketAcknowledgements returns all the packet acknowledgements associated
+        /// with a channel.
+        pub async fn packet_acknowledgements(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryPacketAcknowledgementsRequest>,
+        ) -> Result<tonic::Response<super::QueryPacketAcknowledgementsResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/PacketAcknowledgements",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// UnreceivedPackets returns all the unreceived IBC packets associated with a
+        /// channel and sequences.
+        pub async fn unreceived_packets(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryUnreceivedPacketsRequest>,
+        ) -> Result<tonic::Response<super::QueryUnreceivedPacketsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/UnreceivedPackets",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// UnreceivedAcks returns all the unreceived IBC acknowledgements associated
+        /// with a channel and sequences.
+        pub async fn unreceived_acks(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryUnreceivedAcksRequest>,
+        ) -> Result<tonic::Response<super::QueryUnreceivedAcksResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/UnreceivedAcks");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// NextSequenceReceive returns the next receive sequence for a given channel.
+        pub async fn next_sequence_receive(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryNextSequenceReceiveRequest>,
+        ) -> Result<tonic::Response<super::QueryNextSequenceReceiveResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/ibc.core.channel.v1.Query/NextSequenceReceive",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// NextSequenceSend returns the next send sequence for a given channel.
+        pub async fn next_sequence_send(
+            &mut self,
+            request: impl tonic::IntoRequest<super::QueryNextSequenceSendRequest>,
+        ) -> Result<tonic::Response<super::QueryNextSequenceSendResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.channel.v1.Query/NextSequenceSend");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+    }
+}
+/// GenesisState defines the ibc channel submodule's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    #[prost(message, repeated, tag = "1")]
+    pub channels: ::prost::alloc::vec::Vec<IdentifiedChannel>,
+    #[prost(message, repeated, tag = "2")]
+    pub acknowledgements: ::prost::alloc::vec::Vec<PacketState>,
+    #[prost(message, repeated, tag = "3")]
+    pub commitments: ::prost::alloc::vec::Vec<PacketState>,
+    #[prost(message, repeated, tag = "4")]
+    pub receipts: ::prost::alloc::vec::Vec<PacketState>,
+    #[prost(message, repeated, tag = "5")]
+    pub send_sequences: ::prost::alloc::vec::Vec<PacketSequence>,
+    #[prost(message, repeated, tag = "6")]
+    pub recv_sequences: ::prost::alloc::vec::Vec<PacketSequence>,
+    #[prost(message, repeated, tag = "7")]
+    pub ack_sequences: ::prost::alloc::vec::Vec<PacketSequence>,
+    /// the sequence for the next generated channel identifier
+    #[prost(uint64, tag = "8")]
+    pub next_channel_sequence: u64,
+}
+/// PacketSequence defines the genesis type necessary to retrieve and store
+/// next send and receive sequences.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PacketSequence {
+    #[prost(string, tag = "1")]
+    pub port_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub channel_id: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub sequence: u64,
 }

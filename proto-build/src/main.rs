@@ -97,22 +97,22 @@ fn main() {
 
     // cannot update.
     // update_submodules();
-    output_sdk_version(&temp_sdk_dir);
+    // output_sdk_version(&temp_sdk_dir);
     output_ibc_version(&temp_ibc_dir);
     // output_wasmd_version(&temp_wasmd_dir);
-    output_juno_version(&temp_juno_dir);
-    output_osmosis_version(&temp_osmosis_dir);
-    compile_sdk_protos_and_services(&temp_sdk_dir);
+    // output_juno_version(&temp_juno_dir);
+    // output_osmosis_version(&temp_osmosis_dir);
+    // compile_sdk_protos_and_services(&temp_sdk_dir);
     compile_ibc_protos_and_services(&temp_ibc_dir);
     // compile_wasmd_proto_and_services(&temp_wasmd_dir);
-    compile_juno_protos_and_services(&temp_juno_dir);
-    compile_osmosis_protos_and_services(&temp_osmosis_dir);
+    // compile_juno_protos_and_services(&temp_juno_dir);
+    // compile_osmosis_protos_and_services(&temp_osmosis_dir);
 
-    copy_generated_files(&temp_sdk_dir, &proto_dir.join("cosmos-sdk"));
+    // copy_generated_files(&temp_sdk_dir, &proto_dir.join("cosmos-sdk"));
     copy_generated_files(&temp_ibc_dir, &proto_dir.join("ibc-go"));
     // copy_generated_files(&temp_wasmd_dir, &proto_dir.join("wasmd"));
-    copy_generated_files(&temp_juno_dir, &proto_dir.join("quicksilver"));
-    copy_generated_files(&temp_osmosis_dir, &proto_dir.join("osmosis"));
+    // copy_generated_files(&temp_juno_dir, &proto_dir.join("quicksilver"));
+    // copy_generated_files(&temp_osmosis_dir, &proto_dir.join("osmosis"));
 
     apply_patches(&proto_dir);
 

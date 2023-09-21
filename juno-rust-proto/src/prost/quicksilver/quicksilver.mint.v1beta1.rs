@@ -52,20 +52,6 @@ pub struct Params {
     #[prost(int64, tag = "7")]
     pub minting_rewards_distribution_start_epoch: i64,
 }
-/// GenesisState defines the mint module's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    /// minter is a space for holding current rewards information.
-    #[prost(message, optional, tag = "1")]
-    pub minter: ::core::option::Option<Minter>,
-    /// params defines all the paramaters of the module.
-    #[prost(message, optional, tag = "2")]
-    pub params: ::core::option::Option<Params>,
-    /// current reduction period start epoch
-    #[prost(int64, tag = "3")]
-    pub reduction_started_epoch: i64,
-}
 /// QueryParamsRequest is the request type for the Query/Params RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -372,4 +358,18 @@ pub mod query_server {
     impl<T: Query> tonic::server::NamedService for QueryServer<T> {
         const NAME: &'static str = "quicksilver.mint.v1beta1.Query";
     }
+}
+/// GenesisState defines the mint module's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    /// minter is a space for holding current rewards information.
+    #[prost(message, optional, tag = "1")]
+    pub minter: ::core::option::Option<Minter>,
+    /// params defines all the paramaters of the module.
+    #[prost(message, optional, tag = "2")]
+    pub params: ::core::option::Option<Params>,
+    /// current reduction period start epoch
+    #[prost(int64, tag = "3")]
+    pub reduction_started_epoch: i64,
 }

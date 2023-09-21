@@ -1,12 +1,3 @@
-/// GenesisState defines the crisis module's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    /// constant_fee is the fee used to verify the invariant in the crisis
-    /// module.
-    #[prost(message, optional, tag = "3")]
-    pub constant_fee: ::core::option::Option<super::super::base::v1beta1::Coin>,
-}
 /// MsgVerifyInvariant represents a message to verify a particular invariance.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -244,4 +235,13 @@ pub mod msg_server {
     impl<T: Msg> tonic::server::NamedService for MsgServer<T> {
         const NAME: &'static str = "cosmos.crisis.v1beta1.Msg";
     }
+}
+/// GenesisState defines the crisis module's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    /// constant_fee is the fee used to verify the invariant in the crisis
+    /// module.
+    #[prost(message, optional, tag = "3")]
+    pub constant_fee: ::core::option::Option<super::super::base::v1beta1::Coin>,
 }

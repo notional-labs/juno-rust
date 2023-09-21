@@ -221,67 +221,6 @@ pub struct Receipt {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ParamsV1 {
-    #[prost(uint64, tag = "1")]
-    pub deposit_interval: u64,
-    #[prost(uint64, tag = "2")]
-    pub validatorset_interval: u64,
-    #[prost(string, tag = "3")]
-    pub commission_rate: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Params {
-    #[prost(uint64, tag = "1")]
-    pub deposit_interval: u64,
-    #[prost(uint64, tag = "2")]
-    pub validatorset_interval: u64,
-    #[prost(string, tag = "3")]
-    pub commission_rate: ::prost::alloc::string::String,
-    #[prost(bool, tag = "4")]
-    pub unbonding_enabled: bool,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DelegationsForZone {
-    #[prost(string, tag = "1")]
-    pub chain_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "2")]
-    pub delegations: ::prost::alloc::vec::Vec<Delegation>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DelegatorIntentsForZone {
-    #[prost(string, tag = "1")]
-    pub chain_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "2")]
-    pub delegation_intent: ::prost::alloc::vec::Vec<DelegatorIntent>,
-    #[prost(bool, tag = "3")]
-    pub snapshot: bool,
-}
-/// GenesisState defines the interchainstaking module's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    #[prost(message, optional, tag = "1")]
-    pub params: ::core::option::Option<Params>,
-    #[prost(message, repeated, tag = "2")]
-    pub zones: ::prost::alloc::vec::Vec<Zone>,
-    #[prost(message, repeated, tag = "3")]
-    pub receipts: ::prost::alloc::vec::Vec<Receipt>,
-    #[prost(message, repeated, tag = "4")]
-    pub delegations: ::prost::alloc::vec::Vec<DelegationsForZone>,
-    #[prost(message, repeated, tag = "5")]
-    pub performance_delegations: ::prost::alloc::vec::Vec<DelegationsForZone>,
-    #[prost(message, repeated, tag = "6")]
-    pub delegator_intents: ::prost::alloc::vec::Vec<DelegatorIntentsForZone>,
-    #[prost(message, repeated, tag = "7")]
-    pub port_connections: ::prost::alloc::vec::Vec<PortConnectionTuple>,
-    #[prost(message, repeated, tag = "8")]
-    pub withdrawal_records: ::prost::alloc::vec::Vec<WithdrawalRecord>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Statistics {
     #[prost(string, tag = "1")]
     pub chain_id: ::prost::alloc::string::String,
@@ -1803,4 +1742,65 @@ pub mod msg_server {
     impl<T: Msg> tonic::server::NamedService for MsgServer<T> {
         const NAME: &'static str = "quicksilver.interchainstaking.v1.Msg";
     }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ParamsV1 {
+    #[prost(uint64, tag = "1")]
+    pub deposit_interval: u64,
+    #[prost(uint64, tag = "2")]
+    pub validatorset_interval: u64,
+    #[prost(string, tag = "3")]
+    pub commission_rate: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Params {
+    #[prost(uint64, tag = "1")]
+    pub deposit_interval: u64,
+    #[prost(uint64, tag = "2")]
+    pub validatorset_interval: u64,
+    #[prost(string, tag = "3")]
+    pub commission_rate: ::prost::alloc::string::String,
+    #[prost(bool, tag = "4")]
+    pub unbonding_enabled: bool,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DelegationsForZone {
+    #[prost(string, tag = "1")]
+    pub chain_id: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "2")]
+    pub delegations: ::prost::alloc::vec::Vec<Delegation>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DelegatorIntentsForZone {
+    #[prost(string, tag = "1")]
+    pub chain_id: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "2")]
+    pub delegation_intent: ::prost::alloc::vec::Vec<DelegatorIntent>,
+    #[prost(bool, tag = "3")]
+    pub snapshot: bool,
+}
+/// GenesisState defines the interchainstaking module's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    #[prost(message, optional, tag = "1")]
+    pub params: ::core::option::Option<Params>,
+    #[prost(message, repeated, tag = "2")]
+    pub zones: ::prost::alloc::vec::Vec<Zone>,
+    #[prost(message, repeated, tag = "3")]
+    pub receipts: ::prost::alloc::vec::Vec<Receipt>,
+    #[prost(message, repeated, tag = "4")]
+    pub delegations: ::prost::alloc::vec::Vec<DelegationsForZone>,
+    #[prost(message, repeated, tag = "5")]
+    pub performance_delegations: ::prost::alloc::vec::Vec<DelegationsForZone>,
+    #[prost(message, repeated, tag = "6")]
+    pub delegator_intents: ::prost::alloc::vec::Vec<DelegatorIntentsForZone>,
+    #[prost(message, repeated, tag = "7")]
+    pub port_connections: ::prost::alloc::vec::Vec<PortConnectionTuple>,
+    #[prost(message, repeated, tag = "8")]
+    pub withdrawal_records: ::prost::alloc::vec::Vec<WithdrawalRecord>,
 }

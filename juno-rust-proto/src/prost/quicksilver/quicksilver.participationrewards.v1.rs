@@ -29,6 +29,8 @@ pub struct Params {
     pub distribution_proportions: ::core::option::Option<DistributionProportions>,
     #[prost(bool, tag = "2")]
     pub claims_enabled: bool,
+    #[prost(string, tag = "3")]
+    pub claim_validation_logic: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -89,15 +91,6 @@ impl ProtocolDataType {
             _ => None,
         }
     }
-}
-/// GenesisState defines the participationrewards module's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    #[prost(message, optional, tag = "1")]
-    pub params: ::core::option::Option<Params>,
-    #[prost(message, repeated, tag = "2")]
-    pub protocol_data: ::prost::alloc::vec::Vec<KeyedProtocolData>,
 }
 /// QueryParamsRequest is the request type for the Query/Params RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -428,6 +421,15 @@ pub struct MsgSubmitClaim {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MsgSubmitClaimResponse {}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgRegisterValidationLogic {
+    #[prost(string, tag = "1")]
+    pub contract_addr: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgRegisterValidationLogicResponse {}
 /// Generated client implementations.
 #[cfg(feature = "grpc")]
 #[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
@@ -514,6 +516,23 @@ pub mod msg_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn register_validation_logic(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgRegisterValidationLogic>,
+        ) -> Result<tonic::Response<super::MsgRegisterValidationLogicResponse>, tonic::Status>
+        {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/quicksilver.participationrewards.v1.Msg/RegisterValidationLogic",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -529,6 +548,10 @@ pub mod msg_server {
             &self,
             request: tonic::Request<super::MsgSubmitClaim>,
         ) -> Result<tonic::Response<super::MsgSubmitClaimResponse>, tonic::Status>;
+        async fn register_validation_logic(
+            &self,
+            request: tonic::Request<super::MsgRegisterValidationLogic>,
+        ) -> Result<tonic::Response<super::MsgRegisterValidationLogicResponse>, tonic::Status>;
     }
     /// Msg defines the participationrewards Msg service.
     #[derive(Debug)]
@@ -615,6 +638,40 @@ pub mod msg_server {
                     };
                     Box::pin(fut)
                 }
+                "/quicksilver.participationrewards.v1.Msg/RegisterValidationLogic" => {
+                    #[allow(non_camel_case_types)]
+                    struct RegisterValidationLogicSvc<T: Msg>(pub Arc<T>);
+                    impl<T: Msg> tonic::server::UnaryService<super::MsgRegisterValidationLogic>
+                        for RegisterValidationLogicSvc<T>
+                    {
+                        type Response = super::MsgRegisterValidationLogicResponse;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::MsgRegisterValidationLogic>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut =
+                                async move { (*inner).register_validation_logic(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = RegisterValidationLogicSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 _ => Box::pin(async move {
                     Ok(http::Response::builder()
                         .status(200)
@@ -649,6 +706,15 @@ pub mod msg_server {
     impl<T: Msg> tonic::server::NamedService for MsgServer<T> {
         const NAME: &'static str = "quicksilver.participationrewards.v1.Msg";
     }
+}
+/// GenesisState defines the participationrewards module's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    #[prost(message, optional, tag = "1")]
+    pub params: ::core::option::Option<Params>,
+    #[prost(message, repeated, tag = "2")]
+    pub protocol_data: ::prost::alloc::vec::Vec<KeyedProtocolData>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

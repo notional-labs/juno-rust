@@ -34,47 +34,6 @@ pub struct ClientConsensusStates {
     #[prost(message, repeated, tag = "2")]
     pub consensus_states: ::prost::alloc::vec::Vec<ConsensusStateWithHeight>,
 }
-/// ClientUpdateProposal is a governance proposal. If it passes, the substitute
-/// client's latest consensus state is copied over to the subject client. The proposal
-/// handler may fail if the subject and the substitute do not match in client and
-/// chain parameters (with exception to latest height, frozen height, and chain-id).
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ClientUpdateProposal {
-    /// the title of the update proposal
-    #[prost(string, tag = "1")]
-    pub title: ::prost::alloc::string::String,
-    /// the description of the proposal
-    #[prost(string, tag = "2")]
-    pub description: ::prost::alloc::string::String,
-    /// the client identifier for the client to be updated if the proposal passes
-    #[prost(string, tag = "3")]
-    pub subject_client_id: ::prost::alloc::string::String,
-    /// the substitute client identifier for the client standing in for the subject
-    /// client
-    #[prost(string, tag = "4")]
-    pub substitute_client_id: ::prost::alloc::string::String,
-}
-/// UpgradeProposal is a gov Content type for initiating an IBC breaking
-/// upgrade.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UpgradeProposal {
-    #[prost(string, tag = "1")]
-    pub title: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub description: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
-    pub plan: ::core::option::Option<super::super::super::super::cosmos::upgrade::v1beta1::Plan>,
-    /// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
-    /// This will make the chain commit to the correct upgraded (self) client state
-    /// before the upgrade occurs, so that connecting chains can verify that the
-    /// new upgraded client is valid by verifying a proof on the previous version
-    /// of the chain. This will allow IBC connections to persist smoothly across
-    /// planned chain upgrades
-    #[prost(message, optional, tag = "4")]
-    pub upgraded_client_state: ::core::option::Option<::prost_types::Any>,
-}
 /// Height is a monotonically increasing data type
 /// that can be compared against another Height for the purposes of updating and
 /// freezing clients
@@ -99,53 +58,364 @@ pub struct Height {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Params {
-    /// allowed_clients defines the list of allowed client state types.
+    /// allowed_clients defines the list of allowed client state types which can be created
+    /// and interacted with. If a client type is removed from the allowed clients list, usage
+    /// of this client will be disabled until it is added again to the list.
     #[prost(string, repeated, tag = "1")]
     pub allowed_clients: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
-/// GenesisState defines the ibc client submodule's genesis state.
+/// ClientUpdateProposal is a legacy governance proposal. If it passes, the substitute
+/// client's latest consensus state is copied over to the subject client. The proposal
+/// handler may fail if the subject and the substitute do not match in client and
+/// chain parameters (with exception to latest height, frozen height, and chain-id).
+///
+/// Deprecated: Please use MsgRecoverClient in favour of this message type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    /// client states with their corresponding identifiers
-    #[prost(message, repeated, tag = "1")]
-    pub clients: ::prost::alloc::vec::Vec<IdentifiedClientState>,
-    /// consensus states from each client
-    #[prost(message, repeated, tag = "2")]
-    pub clients_consensus: ::prost::alloc::vec::Vec<ClientConsensusStates>,
-    /// metadata from each client
-    #[prost(message, repeated, tag = "3")]
-    pub clients_metadata: ::prost::alloc::vec::Vec<IdentifiedGenesisMetadata>,
-    #[prost(message, optional, tag = "4")]
-    pub params: ::core::option::Option<Params>,
-    /// create localhost on initialization
-    #[prost(bool, tag = "5")]
-    pub create_localhost: bool,
-    /// the sequence for the next generated client identifier
-    #[prost(uint64, tag = "6")]
-    pub next_client_sequence: u64,
+pub struct ClientUpdateProposal {
+    /// the title of the update proposal
+    #[prost(string, tag = "1")]
+    pub title: ::prost::alloc::string::String,
+    /// the description of the proposal
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    /// the client identifier for the client to be updated if the proposal passes
+    #[prost(string, tag = "3")]
+    pub subject_client_id: ::prost::alloc::string::String,
+    /// the substitute client identifier for the client standing in for the subject
+    /// client
+    #[prost(string, tag = "4")]
+    pub substitute_client_id: ::prost::alloc::string::String,
 }
-/// GenesisMetadata defines the genesis type for metadata that clients may return
-/// with ExportMetadata
+/// MsgCreateClient defines a message to create an IBC client
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisMetadata {
-    /// store key of metadata without clientID-prefix
-    #[prost(bytes = "vec", tag = "1")]
-    pub key: ::prost::alloc::vec::Vec<u8>,
-    /// metadata value
-    #[prost(bytes = "vec", tag = "2")]
-    pub value: ::prost::alloc::vec::Vec<u8>,
+pub struct MsgCreateClient {
+    /// light client state
+    #[prost(message, optional, tag = "1")]
+    pub client_state: ::core::option::Option<::prost_types::Any>,
+    /// consensus state associated with the client that corresponds to a given
+    /// height.
+    #[prost(message, optional, tag = "2")]
+    pub consensus_state: ::core::option::Option<::prost_types::Any>,
+    /// signer address
+    #[prost(string, tag = "3")]
+    pub signer: ::prost::alloc::string::String,
 }
-/// IdentifiedGenesisMetadata has the client metadata with the corresponding
-/// client id.
+/// MsgCreateClientResponse defines the Msg/CreateClient response type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct IdentifiedGenesisMetadata {
+pub struct MsgCreateClientResponse {}
+/// MsgUpdateClient defines an sdk.Msg to update a IBC client state using
+/// the given client message.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateClient {
+    /// client unique identifier
     #[prost(string, tag = "1")]
     pub client_id: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag = "2")]
-    pub client_metadata: ::prost::alloc::vec::Vec<GenesisMetadata>,
+    /// client message to update the light client
+    #[prost(message, optional, tag = "2")]
+    pub client_message: ::core::option::Option<::prost_types::Any>,
+    /// signer address
+    #[prost(string, tag = "3")]
+    pub signer: ::prost::alloc::string::String,
+}
+/// MsgUpdateClientResponse defines the Msg/UpdateClient response type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateClientResponse {}
+/// MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client
+/// state
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpgradeClient {
+    /// client unique identifier
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+    /// upgraded client state
+    #[prost(message, optional, tag = "2")]
+    pub client_state: ::core::option::Option<::prost_types::Any>,
+    /// upgraded consensus state, only contains enough information to serve as a
+    /// basis of trust in update logic
+    #[prost(message, optional, tag = "3")]
+    pub consensus_state: ::core::option::Option<::prost_types::Any>,
+    /// proof that old chain committed to new client
+    #[prost(bytes = "vec", tag = "4")]
+    pub proof_upgrade_client: ::prost::alloc::vec::Vec<u8>,
+    /// proof that old chain committed to new consensus state
+    #[prost(bytes = "vec", tag = "5")]
+    pub proof_upgrade_consensus_state: ::prost::alloc::vec::Vec<u8>,
+    /// signer address
+    #[prost(string, tag = "6")]
+    pub signer: ::prost::alloc::string::String,
+}
+/// MsgUpgradeClientResponse defines the Msg/UpgradeClient response type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpgradeClientResponse {}
+/// MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
+/// light client misbehaviour.
+/// This message has been deprecated. Use MsgUpdateClient instead.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgSubmitMisbehaviour {
+    /// client unique identifier
+    #[prost(string, tag = "1")]
+    pub client_id: ::prost::alloc::string::String,
+    /// misbehaviour used for freezing the light client
+    #[prost(message, optional, tag = "2")]
+    pub misbehaviour: ::core::option::Option<::prost_types::Any>,
+    /// signer address
+    #[prost(string, tag = "3")]
+    pub signer: ::prost::alloc::string::String,
+}
+/// MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response
+/// type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgSubmitMisbehaviourResponse {}
+/// MsgRecoverClient defines the message used to recover a frozen or expired client.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgRecoverClient {
+    /// the client identifier for the client to be updated if the proposal passes
+    #[prost(string, tag = "1")]
+    pub subject_client_id: ::prost::alloc::string::String,
+    /// the substitute client identifier for the client which will replace the subject
+    /// client
+    #[prost(string, tag = "2")]
+    pub substitute_client_id: ::prost::alloc::string::String,
+    /// signer address
+    #[prost(string, tag = "3")]
+    pub signer: ::prost::alloc::string::String,
+}
+/// MsgRecoverClientResponse defines the Msg/RecoverClient response type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgRecoverClientResponse {}
+/// MsgIBCSoftwareUpgrade defines the message used to schedule an upgrade of an IBC client using a v1 governance proposal
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgIbcSoftwareUpgrade {
+    #[prost(message, optional, tag = "1")]
+    pub plan: ::core::option::Option<super::super::super::super::cosmos::upgrade::v1beta1::Plan>,
+    /// An UpgradedClientState must be provided to perform an IBC breaking upgrade.
+    /// This will make the chain commit to the correct upgraded (self) client state
+    /// before the upgrade occurs, so that connecting chains can verify that the
+    /// new upgraded client is valid by verifying a proof on the previous version
+    /// of the chain. This will allow IBC connections to persist smoothly across
+    /// planned chain upgrades. Correspondingly, the UpgradedClientState field has been
+    /// deprecated in the Cosmos SDK to allow for this logic to exist solely in
+    /// the 02-client module.
+    #[prost(message, optional, tag = "2")]
+    pub upgraded_client_state: ::core::option::Option<::prost_types::Any>,
+    /// signer address
+    #[prost(string, tag = "3")]
+    pub signer: ::prost::alloc::string::String,
+}
+/// MsgIBCSoftwareUpgradeResponse defines the Msg/IBCSoftwareUpgrade response type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgIbcSoftwareUpgradeResponse {}
+/// MsgUpdateParams defines the sdk.Msg type to update the client parameters.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateParams {
+    /// signer address
+    #[prost(string, tag = "1")]
+    pub signer: ::prost::alloc::string::String,
+    /// params defines the client parameters to update.
+    ///
+    /// NOTE: All parameters must be supplied.
+    #[prost(message, optional, tag = "2")]
+    pub params: ::core::option::Option<Params>,
+}
+/// MsgUpdateParamsResponse defines the MsgUpdateParams response type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct MsgUpdateParamsResponse {}
+/// Generated client implementations.
+#[cfg(feature = "grpc")]
+#[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
+pub mod msg_client {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::http::Uri;
+    use tonic::codegen::*;
+    /// Msg defines the ibc/client Msg service.
+    #[derive(Debug, Clone)]
+    pub struct MsgClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    #[cfg(feature = "grpc-transport")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "grpc-transport")))]
+    impl MsgClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: std::convert::TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> MsgClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> MsgClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + Send + Sync,
+        {
+            MsgClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// CreateClient defines a rpc handler method for MsgCreateClient.
+        pub async fn create_client(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgCreateClient>,
+        ) -> Result<tonic::Response<super::MsgCreateClientResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/CreateClient");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// UpdateClient defines a rpc handler method for MsgUpdateClient.
+        pub async fn update_client(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgUpdateClient>,
+        ) -> Result<tonic::Response<super::MsgUpdateClientResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/UpdateClient");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
+        pub async fn upgrade_client(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgUpgradeClient>,
+        ) -> Result<tonic::Response<super::MsgUpgradeClientResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/UpgradeClient");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
+        pub async fn submit_misbehaviour(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgSubmitMisbehaviour>,
+        ) -> Result<tonic::Response<super::MsgSubmitMisbehaviourResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/SubmitMisbehaviour");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// RecoverClient defines a rpc handler method for MsgRecoverClient.
+        pub async fn recover_client(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgRecoverClient>,
+        ) -> Result<tonic::Response<super::MsgRecoverClientResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/RecoverClient");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// IBCSoftwareUpgrade defines a rpc handler method for MsgIBCSoftwareUpgrade.
+        pub async fn ibc_software_upgrade(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgIbcSoftwareUpgrade>,
+        ) -> Result<tonic::Response<super::MsgIbcSoftwareUpgradeResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/IBCSoftwareUpgrade");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        /// UpdateClientParams defines a rpc handler method for MsgUpdateParams.
+        pub async fn update_client_params(
+            &mut self,
+            request: impl tonic::IntoRequest<super::MsgUpdateParams>,
+        ) -> Result<tonic::Response<super::MsgUpdateParamsResponse>, tonic::Status> {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path =
+                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/UpdateClientParams");
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+    }
 }
 /// QueryClientStateRequest is the request type for the Query/ClientState RPC
 /// method
@@ -520,7 +790,7 @@ pub mod query_client {
                 http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Query/ClientStatus");
             self.inner.unary(request.into_request(), path, codec).await
         }
-        /// ClientParams queries all parameters of the ibc client.
+        /// ClientParams queries all parameters of the ibc client submodule.
         pub async fn client_params(
             &mut self,
             request: impl tonic::IntoRequest<super::QueryClientParamsRequest>,
@@ -574,224 +844,49 @@ pub mod query_client {
         }
     }
 }
-/// MsgCreateClient defines a message to create an IBC client
+/// GenesisState defines the ibc client submodule's genesis state.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgCreateClient {
-    /// light client state
-    #[prost(message, optional, tag = "1")]
-    pub client_state: ::core::option::Option<::prost_types::Any>,
-    /// consensus state associated with the client that corresponds to a given
-    /// height.
-    #[prost(message, optional, tag = "2")]
-    pub consensus_state: ::core::option::Option<::prost_types::Any>,
-    /// signer address
-    #[prost(string, tag = "3")]
-    pub signer: ::prost::alloc::string::String,
+pub struct GenesisState {
+    /// client states with their corresponding identifiers
+    #[prost(message, repeated, tag = "1")]
+    pub clients: ::prost::alloc::vec::Vec<IdentifiedClientState>,
+    /// consensus states from each client
+    #[prost(message, repeated, tag = "2")]
+    pub clients_consensus: ::prost::alloc::vec::Vec<ClientConsensusStates>,
+    /// metadata from each client
+    #[prost(message, repeated, tag = "3")]
+    pub clients_metadata: ::prost::alloc::vec::Vec<IdentifiedGenesisMetadata>,
+    #[prost(message, optional, tag = "4")]
+    pub params: ::core::option::Option<Params>,
+    /// Deprecated: create_localhost has been deprecated.
+    /// The localhost client is automatically created at genesis.
+    #[deprecated]
+    #[prost(bool, tag = "5")]
+    pub create_localhost: bool,
+    /// the sequence for the next generated client identifier
+    #[prost(uint64, tag = "6")]
+    pub next_client_sequence: u64,
 }
-/// MsgCreateClientResponse defines the Msg/CreateClient response type.
+/// GenesisMetadata defines the genesis type for metadata that clients may return
+/// with ExportMetadata
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgCreateClientResponse {}
-/// MsgUpdateClient defines an sdk.Msg to update a IBC client state using
-/// the given header.
+pub struct GenesisMetadata {
+    /// store key of metadata without clientID-prefix
+    #[prost(bytes = "vec", tag = "1")]
+    pub key: ::prost::alloc::vec::Vec<u8>,
+    /// metadata value
+    #[prost(bytes = "vec", tag = "2")]
+    pub value: ::prost::alloc::vec::Vec<u8>,
+}
+/// IdentifiedGenesisMetadata has the client metadata with the corresponding
+/// client id.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgUpdateClient {
-    /// client unique identifier
+pub struct IdentifiedGenesisMetadata {
     #[prost(string, tag = "1")]
     pub client_id: ::prost::alloc::string::String,
-    /// header to update the light client
-    #[prost(message, optional, tag = "2")]
-    pub header: ::core::option::Option<::prost_types::Any>,
-    /// signer address
-    #[prost(string, tag = "3")]
-    pub signer: ::prost::alloc::string::String,
-}
-/// MsgUpdateClientResponse defines the Msg/UpdateClient response type.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgUpdateClientResponse {}
-/// MsgUpgradeClient defines an sdk.Msg to upgrade an IBC client to a new client
-/// state
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgUpgradeClient {
-    /// client unique identifier
-    #[prost(string, tag = "1")]
-    pub client_id: ::prost::alloc::string::String,
-    /// upgraded client state
-    #[prost(message, optional, tag = "2")]
-    pub client_state: ::core::option::Option<::prost_types::Any>,
-    /// upgraded consensus state, only contains enough information to serve as a
-    /// basis of trust in update logic
-    #[prost(message, optional, tag = "3")]
-    pub consensus_state: ::core::option::Option<::prost_types::Any>,
-    /// proof that old chain committed to new client
-    #[prost(bytes = "vec", tag = "4")]
-    pub proof_upgrade_client: ::prost::alloc::vec::Vec<u8>,
-    /// proof that old chain committed to new consensus state
-    #[prost(bytes = "vec", tag = "5")]
-    pub proof_upgrade_consensus_state: ::prost::alloc::vec::Vec<u8>,
-    /// signer address
-    #[prost(string, tag = "6")]
-    pub signer: ::prost::alloc::string::String,
-}
-/// MsgUpgradeClientResponse defines the Msg/UpgradeClient response type.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgUpgradeClientResponse {}
-/// MsgSubmitMisbehaviour defines an sdk.Msg type that submits Evidence for
-/// light client misbehaviour.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgSubmitMisbehaviour {
-    /// client unique identifier
-    #[prost(string, tag = "1")]
-    pub client_id: ::prost::alloc::string::String,
-    /// misbehaviour used for freezing the light client
-    #[prost(message, optional, tag = "2")]
-    pub misbehaviour: ::core::option::Option<::prost_types::Any>,
-    /// signer address
-    #[prost(string, tag = "3")]
-    pub signer: ::prost::alloc::string::String,
-}
-/// MsgSubmitMisbehaviourResponse defines the Msg/SubmitMisbehaviour response
-/// type.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct MsgSubmitMisbehaviourResponse {}
-/// Generated client implementations.
-#[cfg(feature = "grpc")]
-#[cfg_attr(docsrs, doc(cfg(feature = "grpc")))]
-pub mod msg_client {
-    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
-    use tonic::codegen::http::Uri;
-    use tonic::codegen::*;
-    /// Msg defines the ibc/client Msg service.
-    #[derive(Debug, Clone)]
-    pub struct MsgClient<T> {
-        inner: tonic::client::Grpc<T>,
-    }
-    #[cfg(feature = "grpc-transport")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "grpc-transport")))]
-    impl MsgClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
-    impl<T> MsgClient<T>
-    where
-        T: tonic::client::GrpcService<tonic::body::BoxBody>,
-        T::Error: Into<StdError>,
-        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
-        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
-    {
-        pub fn new(inner: T) -> Self {
-            let inner = tonic::client::Grpc::new(inner);
-            Self { inner }
-        }
-        pub fn with_origin(inner: T, origin: Uri) -> Self {
-            let inner = tonic::client::Grpc::with_origin(inner, origin);
-            Self { inner }
-        }
-        pub fn with_interceptor<F>(inner: T, interceptor: F) -> MsgClient<InterceptedService<T, F>>
-        where
-            F: tonic::service::Interceptor,
-            T::ResponseBody: Default,
-            T: tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-                Response = http::Response<
-                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
-                >,
-            >,
-            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
-                Into<StdError> + Send + Sync,
-        {
-            MsgClient::new(InterceptedService::new(inner, interceptor))
-        }
-        /// Compress requests with the given encoding.
-        ///
-        /// This requires the server to support it otherwise it might respond with an
-        /// error.
-        #[must_use]
-        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.send_compressed(encoding);
-            self
-        }
-        /// Enable decompressing responses.
-        #[must_use]
-        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
-            self.inner = self.inner.accept_compressed(encoding);
-            self
-        }
-        /// CreateClient defines a rpc handler method for MsgCreateClient.
-        pub async fn create_client(
-            &mut self,
-            request: impl tonic::IntoRequest<super::MsgCreateClient>,
-        ) -> Result<tonic::Response<super::MsgCreateClientResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/CreateClient");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// UpdateClient defines a rpc handler method for MsgUpdateClient.
-        pub async fn update_client(
-            &mut self,
-            request: impl tonic::IntoRequest<super::MsgUpdateClient>,
-        ) -> Result<tonic::Response<super::MsgUpdateClientResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/UpdateClient");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// UpgradeClient defines a rpc handler method for MsgUpgradeClient.
-        pub async fn upgrade_client(
-            &mut self,
-            request: impl tonic::IntoRequest<super::MsgUpgradeClient>,
-        ) -> Result<tonic::Response<super::MsgUpgradeClientResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/UpgradeClient");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        /// SubmitMisbehaviour defines a rpc handler method for MsgSubmitMisbehaviour.
-        pub async fn submit_misbehaviour(
-            &mut self,
-            request: impl tonic::IntoRequest<super::MsgSubmitMisbehaviour>,
-        ) -> Result<tonic::Response<super::MsgSubmitMisbehaviourResponse>, tonic::Status> {
-            self.inner.ready().await.map_err(|e| {
-                tonic::Status::new(
-                    tonic::Code::Unknown,
-                    format!("Service was not ready: {}", e.into()),
-                )
-            })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path =
-                http::uri::PathAndQuery::from_static("/ibc.core.client.v1.Msg/SubmitMisbehaviour");
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-    }
+    #[prost(message, repeated, tag = "2")]
+    pub client_metadata: ::prost::alloc::vec::Vec<GenesisMetadata>,
 }

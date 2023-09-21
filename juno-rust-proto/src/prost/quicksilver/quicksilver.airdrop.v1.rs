@@ -149,17 +149,6 @@ impl Status {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Params {}
-/// GenesisState defines the airdrop module's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    #[prost(message, optional, tag = "1")]
-    pub params: ::core::option::Option<Params>,
-    #[prost(message, repeated, tag = "2")]
-    pub zone_drops: ::prost::alloc::vec::Vec<ZoneDrop>,
-    #[prost(message, repeated, tag = "3")]
-    pub claim_records: ::prost::alloc::vec::Vec<ClaimRecord>,
-}
 /// QueryParamsRequest is the request type for the Query/Params RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1062,6 +1051,17 @@ pub mod msg_server {
     impl<T: Msg> tonic::server::NamedService for MsgServer<T> {
         const NAME: &'static str = "quicksilver.airdrop.v1.Msg";
     }
+}
+/// GenesisState defines the airdrop module's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    #[prost(message, optional, tag = "1")]
+    pub params: ::core::option::Option<Params>,
+    #[prost(message, repeated, tag = "2")]
+    pub zone_drops: ::prost::alloc::vec::Vec<ZoneDrop>,
+    #[prost(message, repeated, tag = "3")]
+    pub claim_records: ::prost::alloc::vec::Vec<ClaimRecord>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

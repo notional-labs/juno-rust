@@ -102,25 +102,6 @@ pub struct Pool {
     #[prost(string, tag = "7")]
     pub total_weight: ::prost::alloc::string::String,
 }
-/// Params holds parameters for the incentives module
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Params {
-    #[prost(message, repeated, tag = "1")]
-    pub pool_creation_fee:
-        ::prost::alloc::vec::Vec<super::super::super::cosmos::base::v1beta1::Coin>,
-}
-/// GenesisState defines the gamm module's genesis state.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GenesisState {
-    #[prost(message, repeated, tag = "1")]
-    pub pools: ::prost::alloc::vec::Vec<::prost_types::Any>,
-    #[prost(uint64, tag = "2")]
-    pub next_pool_number: u64,
-    #[prost(message, optional, tag = "3")]
-    pub params: ::core::option::Option<Params>,
-}
 /// ===================== MsgJoinPool
 /// This is really MsgJoinPoolNoSwap
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -1727,4 +1708,23 @@ pub mod query_server {
     impl<T: Query> tonic::server::NamedService for QueryServer<T> {
         const NAME: &'static str = "osmosis.gamm.v1beta1.Query";
     }
+}
+/// Params holds parameters for the incentives module
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Params {
+    #[prost(message, repeated, tag = "1")]
+    pub pool_creation_fee:
+        ::prost::alloc::vec::Vec<super::super::super::cosmos::base::v1beta1::Coin>,
+}
+/// GenesisState defines the gamm module's genesis state.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenesisState {
+    #[prost(message, repeated, tag = "1")]
+    pub pools: ::prost::alloc::vec::Vec<::prost_types::Any>,
+    #[prost(uint64, tag = "2")]
+    pub next_pool_number: u64,
+    #[prost(message, optional, tag = "3")]
+    pub params: ::core::option::Option<Params>,
 }
